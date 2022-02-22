@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TotalCommander.DockerPlugin", "src\TotalCommander.DockerPlugin\TotalCommander.DockerPlugin.csproj", "{A0C92103-6E9E-4994-9741-D457BB7B3016}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{81DEAEF4-7945-4A13-8049-16FE0EADBB07}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{520A6937-698C-44CB-A507-5B488D8FD13D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BB1774CE-1973-4FD0-898C-E6DACC121953}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A0C92103-6E9E-4994-9741-D457BB7B3016}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0C92103-6E9E-4994-9741-D457BB7B3016}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0C92103-6E9E-4994-9741-D457BB7B3016}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0C92103-6E9E-4994-9741-D457BB7B3016}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A0C92103-6E9E-4994-9741-D457BB7B3016} = {520A6937-698C-44CB-A507-5B488D8FD13D}
+	EndGlobalSection
+EndGlobal
