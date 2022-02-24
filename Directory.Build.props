@@ -1,0 +1,8 @@
+<Project>
+
+  <PropertyGroup>
+    <TargetFramework>net471</TargetFramework>
+    <LangVersion>default</LangVersion>
+  </PropertyGroup>
+
+</Project>

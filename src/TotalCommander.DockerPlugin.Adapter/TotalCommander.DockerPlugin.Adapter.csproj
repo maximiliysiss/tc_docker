@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+      <Exec Command="copy /Y $(TargetPath) c:\totalcmd\TotalCommander.DockerPlugin.Adapter.dll" />
+    </Target>
+
+</Project>
