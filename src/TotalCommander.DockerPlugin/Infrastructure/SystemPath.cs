@@ -11,7 +11,13 @@ public class SystemPath
     private SystemPath(string path, SystemPathType systemPathType)
     {
         _systemPathType = systemPathType;
-        _path = path.Replace('\\', (char)systemPathType).Replace('/', (char)systemPathType);
+
+        char pathDelimiter = (char)systemPathType;
+        _path = path
+            .Replace('\\', pathDelimiter)
+            .Replace('/', pathDelimiter)
+            .Replace($"{pathDelimiter}{pathDelimiter}", $"{pathDelimiter}");
+
         _sections = _path.Split(new[] { (char)systemPathType }, StringSplitOptions.RemoveEmptyEntries);
     }
 

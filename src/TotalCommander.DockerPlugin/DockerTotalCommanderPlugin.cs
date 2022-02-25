@@ -20,15 +20,22 @@ public class DockerTotalCommanderPlugin : FsPlugin
         _commandExecutor = CommanderBuilder.Build(CommanderType.Linux);
     }
 
-    public override object FindFirst(string path, out FindData findData)
+    private static string AsRealPath(string path)
     {
-        findData = null;
-
         var startImageText = path.IndexOf(" [", StringComparison.Ordinal);
         var endImageText = path.IndexOf(']');
 
         if (startImageText != -1 && endImageText != -1)
             path = path.Remove(startImageText, endImageText - startImageText + 1);
+
+        return path;
+    }
+
+    public override object FindFirst(string path, out FindData findData)
+    {
+        findData = null;
+
+        path = AsRealPath(path);
 
         IEnumerator<TreeElement> elementEnumerator = path == "\\"
             ? _commandExecutor.GetAllContainers().GetEnumerator()
@@ -62,6 +69,5 @@ public class DockerTotalCommanderPlugin : FsPlugin
         return true;
     }
 
-    public override bool DeleteFile(string fileName) => _commandExecutor.DeleteFile(fileName);
-
+    public override bool DeleteFile(string fileName) => _commandExecutor.DeleteFile(AsRealPath(fileName));
 }
