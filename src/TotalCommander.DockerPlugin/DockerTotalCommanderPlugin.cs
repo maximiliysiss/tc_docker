@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Windows.Forms;
+using System.Drawing;
+using System.IO;
+using OY.TotalCommander.TcPluginInterface;
 using OY.TotalCommander.TcPluginInterface.FileSystem;
 using TotalCommander.DockerPlugin.Adapter.Models;
 using TotalCommander.DockerPlugin.Commander;
@@ -11,12 +12,15 @@ namespace TotalCommander.DockerPlugin;
 
 public class DockerTotalCommanderPlugin : FsPlugin
 {
-    private const string _title = "docker";
+    private const string PluginTitle = "docker";
+    private const string EmptyStub = "_empty.stub";
+
     private readonly ICommanderExecutor _commandExecutor;
 
     public DockerTotalCommanderPlugin(StringDictionary pluginSettings) : base(pluginSettings)
     {
-        Title = _title;
+        Title = PluginTitle;
+
         _commandExecutor = CommanderBuilder.Build(CommanderType.Linux);
     }
 
@@ -37,7 +41,7 @@ public class DockerTotalCommanderPlugin : FsPlugin
 
         path = AsRealPath(path);
 
-        IEnumerator<TreeElement> elementEnumerator = path == "\\"
+        var elementEnumerator = path == "\\"
             ? _commandExecutor.GetAllContainers().GetEnumerator()
             : _commandExecutor.GetDirectoryContent(path).GetEnumerator();
 
@@ -47,9 +51,8 @@ public class DockerTotalCommanderPlugin : FsPlugin
             return elementEnumerator;
         }
 
-        // TODO rebuild TSInterface
-        MessageBox.Show("Empty directory", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        return null;
+        findData = new FindData(EmptyStub, FileAttributes.Hidden | FileAttributes.ReadOnly);
+        return Array.Empty<TreeElement>().GetEnumerator();
     }
 
     public override bool FindNext(ref object o, out FindData findData)
@@ -69,5 +72,38 @@ public class DockerTotalCommanderPlugin : FsPlugin
         return true;
     }
 
-    public override bool DeleteFile(string fileName) => _commandExecutor.DeleteFile(AsRealPath(fileName));
+    public override bool DeleteFile(string fileName)
+    {
+        if (fileName.EndsWith(EmptyStub))
+            return true;
+
+        return _commandExecutor.DeleteFile(AsRealPath(fileName));
+    }
+
+    public override bool RemoveDir(string dirName) => _commandExecutor.RemoveDir(AsRealPath(dirName));
+
+    public override bool MkDir(string dir) => _commandExecutor.MkDir(AsRealPath(dir));
+
+    public override FileSystemExitCode RenMovFile(string oldName, string newName, bool move, bool overwrite, RemoteInfo remoteInfo)
+    {
+        _commandExecutor.RenMovFile(AsRealPath(oldName), AsRealPath(newName), move, overwrite);
+        return FileSystemExitCode.OK;
+    }
+
+    public override ExecResult ExecuteCommand(TcWindow mainWin, ref string remoteName, string command)
+    {
+        _commandExecutor.ExecuteCommand(AsRealPath(remoteName), command);
+        return ExecResult.OkReread;
+    }
+
+    public override ExecResult ExecuteOpen(TcWindow mainWin, ref string remoteName)
+    {
+        _commandExecutor.OpenFile(AsRealPath(remoteName));
+        return ExecResult.OK;
+    }
+
+    public override PreviewBitmapResult GetPreviewBitmap(ref string remoteName, int width, int height, out Bitmap returnedBitmap)
+    {
+        return base.GetPreviewBitmap(ref remoteName, width, height, out returnedBitmap);
+    }
 }

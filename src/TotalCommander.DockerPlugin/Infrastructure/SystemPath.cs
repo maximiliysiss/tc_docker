@@ -12,7 +12,7 @@ public class SystemPath
     {
         _systemPathType = systemPathType;
 
-        char pathDelimiter = (char)systemPathType;
+        var pathDelimiter = (char)systemPathType;
         _path = path
             .Replace('\\', pathDelimiter)
             .Replace('/', pathDelimiter)
@@ -24,6 +24,7 @@ public class SystemPath
     public SystemPath Replace(string oldValue, string newValue) => new(_path.Replace(oldValue, newValue), _systemPathType);
 
     public string this[int i] => _sections[i];
+    public int Lenght => _sections.Length;
 
     public override string ToString() => _path;
 

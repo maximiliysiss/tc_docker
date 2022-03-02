@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TotalCommander.DockerPlugin.Adapter.Models;
 
@@ -8,4 +9,9 @@ public interface ICommanderExecutor
     IEnumerable<TreeElement> GetAllContainers();
     IEnumerable<TreeElement> GetDirectoryContent(string path);
     bool DeleteFile(string fileName);
+    bool MkDir(string path);
+    bool RemoveDir(string path);
+    void RenMovFile(string oldPath, string newPath, bool isMove, bool isOverwrite);
+    void ExecuteCommand(string remoteName, string command);
+    void OpenFile(string path);
 }
