@@ -8,11 +8,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TotalCommander.DockerPlugin.Adapter\TotalCommander.DockerPlugin.Adapter.csproj" />
+    <ProjectReference Include="..\TotalCommander.DockerPlugin.Adapter\TotalCommander.DockerPlugin.Adapter.csproj"/>
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="$(SolutionDir)libs\TcPluginCore\clr4\WrapperBuilder.exe /wfx /p=$(TargetPath) /v /$(ConfigurationName)" />
+    <Exec Command="$(SolutionDir)libs\TcPluginCore\clr4\WrapperBuilder.exe /wfx /p=$(TargetPath) /v /$(ConfigurationName)"/>
+  </Target>
+
+  <Target Name="CopyToPublish" AfterTargets="Publish">
+    <Copy SourceFiles="$(TargetDir)TotalCommander.DockerPlugin.wfx64" DestinationFolder="$(PublishDir)"/>
+    <Copy SourceFiles="$(TargetDir)TotalCommander.DockerPlugin.wfx64.config" DestinationFolder="$(PublishDir)"/>
+    <Copy SourceFiles="$(TargetDir)TotalCommander.DockerPlugin.wfx" DestinationFolder="$(PublishDir)"/>
+    <Copy SourceFiles="$(TargetDir)TotalCommander.DockerPlugin.wfx.config" DestinationFolder="$(PublishDir)"/>
+    <Copy SourceFiles="$(TargetDir)pluginst.inf" DestinationFolder="$(PublishDir)"/>
+    <Exec Command="del /q $(PublishDir)*.pdb"/>
+    <Exec Command="del /q $(PublishDir)TotalCommander.DockerPlugin.dll"/>
   </Target>
 
 </Project>
