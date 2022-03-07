@@ -10,10 +10,15 @@ public abstract class TreeElement
     {
     }
 
-    protected TreeElement(string name) => Name = name;
+    protected TreeElement(string name, ulong size)
+    {
+        Name = name;
+        Size = size;
+    }
 
     public abstract FileAttributes Attributes { get; }
     public string Name { get; set; }
+    public ulong Size { get; set; }
 
     public override string ToString() => Name;
 }

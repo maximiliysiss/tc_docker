@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Specialized;
-using System.Drawing;
 using System.IO;
 using OY.TotalCommander.TcPluginInterface;
 using OY.TotalCommander.TcPluginInterface.FileSystem;
@@ -47,7 +46,10 @@ public class DockerTotalCommanderPlugin : FsPlugin
 
         if (elementEnumerator.MoveNext() && elementEnumerator.Current != null)
         {
-            findData = new FindData(elementEnumerator.Current.ToString(), elementEnumerator.Current.Attributes);
+            findData = new FindData(
+                elementEnumerator.Current.ToString(),
+                elementEnumerator.Current.Size,
+                elementEnumerator.Current.Attributes);
             return elementEnumerator;
         }
 
@@ -67,7 +69,7 @@ public class DockerTotalCommanderPlugin : FsPlugin
         if (enumerator.Current is not TreeElement treeElement)
             return false;
 
-        findData = new FindData(treeElement.ToString(), treeElement.Attributes);
+        findData = new FindData(treeElement.ToString(), treeElement.Size, treeElement.Attributes);
 
         return true;
     }
@@ -84,12 +86,6 @@ public class DockerTotalCommanderPlugin : FsPlugin
 
     public override bool MkDir(string dir) => _commandExecutor.MkDir(AsRealPath(dir));
 
-    public override FileSystemExitCode RenMovFile(string oldName, string newName, bool move, bool overwrite, RemoteInfo remoteInfo)
-    {
-        _commandExecutor.RenMovFile(AsRealPath(oldName), AsRealPath(newName), move, overwrite);
-        return FileSystemExitCode.OK;
-    }
-
     public override ExecResult ExecuteCommand(TcWindow mainWin, ref string remoteName, string command)
     {
         _commandExecutor.ExecuteCommand(AsRealPath(remoteName), command);
@@ -100,10 +96,5 @@ public class DockerTotalCommanderPlugin : FsPlugin
     {
         _commandExecutor.OpenFile(AsRealPath(remoteName));
         return ExecResult.OK;
-    }
-
-    public override PreviewBitmapResult GetPreviewBitmap(ref string remoteName, int width, int height, out Bitmap returnedBitmap)
-    {
-        return base.GetPreviewBitmap(ref remoteName, width, height, out returnedBitmap);
     }
 }

@@ -14,22 +14,23 @@ public class ElementsFactory
         Pipe = '|'
     }
 
-    public static ITreeElementBuilder GetBuilder(string name)
+    public static ITreeElementBuilder GetBuilder(string line)
     {
-        var lastChar = (ElementsFactoryType)name[name.Length - 1];
+        line = line.Trim();
+        var lastChar = (ElementsFactoryType)line[line.Length - 1];
 
         switch (lastChar)
         {
             case ElementsFactoryType.Directory:
-                return new DirectoryBuilder(name);
+                return new DirectoryBuilder(line);
             case ElementsFactoryType.Executable:
             case ElementsFactoryType.Symbol:
             case ElementsFactoryType.Socket:
             case ElementsFactoryType.Door:
             case ElementsFactoryType.Pipe:
-                return new FileBuilder(name.Substring(0, name.Length - 1));
+                return new FileBuilder(line.Substring(0, line.Length - 1));
             default:
-                return new FileBuilder(name);
+                return new FileBuilder(line);
         }
     }
 }

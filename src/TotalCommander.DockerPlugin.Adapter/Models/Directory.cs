@@ -10,7 +10,7 @@ public class Directory : TreeElement
     {
     }
 
-    public Directory(string name) : base(name)
+    public Directory(string name) : base(name, 0)
     {
     }
 

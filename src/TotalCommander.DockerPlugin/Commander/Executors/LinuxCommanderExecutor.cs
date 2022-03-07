@@ -20,9 +20,9 @@ public class LinuxCommanderExecutor : ICommanderExecutor
         var container = systemPath[0];
         systemPath = systemPath.Replace(systemPath[0], string.Empty);
 
-        var dockerProcessCommandOutput = DockerUtils.DockerProcessCommand($"exec {container} ls -F {systemPath}");
+        var dockerProcessCommandOutput = DockerUtils.DockerProcessCommand($"exec {container} ls -s --block-size=1 -F {systemPath}");
         var allRows = dockerProcessCommandOutput.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-        return allRows.Select(line => ElementsFactory.GetBuilder(line).Build()).ToArray();
+        return allRows.Skip(1).Select(line => ElementsFactory.GetBuilder(line).Build()).ToArray();
     }
 
     public bool DeleteFile(string fileName)
@@ -56,12 +56,6 @@ public class LinuxCommanderExecutor : ICommanderExecutor
         DockerUtils.DockerProcessCommand($"exec {container} rm -r {systemPath}");
 
         return true;
-    }
-
-    public void RenMovFile(string oldPath, string newPath, bool isMove, bool isOverwrite)
-    {
-        var oldSystemPath = SystemPath.AsLinux(oldPath);
-        var newSystemPath = SystemPath.AsLinux(newPath);
     }
 
     public void ExecuteCommand(string remoteName, string command)

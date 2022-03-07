@@ -36,4 +36,6 @@ public class SystemPath
         Linux = '/',
         Windows = '\\'
     }
+
+    public bool StartWith(string value) => _path.StartsWith(value);
 }

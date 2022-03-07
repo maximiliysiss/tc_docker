@@ -12,7 +12,6 @@ public class WindowsCommanderExecutor : ICommanderExecutor
     public bool DeleteFile(string fileName) => throw new System.NotImplementedException();
     public bool MkDir(string path) => throw new System.NotImplementedException();
     public bool RemoveDir(string path) => throw new System.NotImplementedException();
-    public void RenMovFile(string oldPath, string newPath, bool isMove, bool isOverwrite) => throw new System.NotImplementedException();
     public void ExecuteCommand(string remoteName, string command) => throw new NotImplementedException();
     public void OpenFile(string path) => throw new NotImplementedException();
 }

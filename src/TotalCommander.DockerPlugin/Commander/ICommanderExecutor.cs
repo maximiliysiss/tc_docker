@@ -11,7 +11,6 @@ public interface ICommanderExecutor
     bool DeleteFile(string fileName);
     bool MkDir(string path);
     bool RemoveDir(string path);
-    void RenMovFile(string oldPath, string newPath, bool isMove, bool isOverwrite);
     void ExecuteCommand(string remoteName, string command);
     void OpenFile(string path);
 }

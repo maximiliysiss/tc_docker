@@ -10,7 +10,7 @@ public class File: TreeElement
     {
     }
 
-    public File(string name) : base(name)
+    public File(string name, ulong size) : base(name, size)
     {
     }
 

@@ -10,7 +10,7 @@ public class Container : TreeElement
     {
     }
 
-    public Container(string id, string name, string imageName) : base(name)
+    public Container(string id, string name, string imageName) : base(name, 0)
     {
         Id = id;
         Name = name;

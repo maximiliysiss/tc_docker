@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{81DEAE
 		.gitignore = .gitignore
 		.editorconfig = .editorconfig
 		Directory.Build.props = Directory.Build.props
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{520A6937-698C-44CB-A507-5B488D8FD13D}"
@@ -17,8 +18,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BB1774CE-1973-4FD0-898C-E6DACC121953}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TotalCommander.DockerPlugin.Adapter", "src\TotalCommander.DockerPlugin.Adapter\TotalCommander.DockerPlugin.Adapter.csproj", "{1A35C773-A1E3-4110-9E06-F4F0E2FDFEED}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TotalCommander.KubernetesPlugin", "src\TotalCommander.KubernetesPlugin\TotalCommander.KubernetesPlugin.csproj", "{B7337F74-E7B3-4B2B-B247-51C6DD06513A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,14 +36,9 @@ Global
 		{1A35C773-A1E3-4110-9E06-F4F0E2FDFEED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1A35C773-A1E3-4110-9E06-F4F0E2FDFEED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1A35C773-A1E3-4110-9E06-F4F0E2FDFEED}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B7337F74-E7B3-4B2B-B247-51C6DD06513A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B7337F74-E7B3-4B2B-B247-51C6DD06513A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B7337F74-E7B3-4B2B-B247-51C6DD06513A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B7337F74-E7B3-4B2B-B247-51C6DD06513A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A0C92103-6E9E-4994-9741-D457BB7B3016} = {520A6937-698C-44CB-A507-5B488D8FD13D}
 		{1A35C773-A1E3-4110-9E06-F4F0E2FDFEED} = {520A6937-698C-44CB-A507-5B488D8FD13D}
-		{B7337F74-E7B3-4B2B-B247-51C6DD06513A} = {520A6937-698C-44CB-A507-5B488D8FD13D}
 	EndGlobalSection
 EndGlobal
