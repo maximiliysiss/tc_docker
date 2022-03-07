@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Debug'" >
       <Exec Command="copy /Y $(TargetPath) c:\totalcmd\TotalCommander.DockerPlugin.Adapter.dll" />
     </Target>
 
