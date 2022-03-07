@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="$(SolutionDir)libs\TcPluginCore\clr4\WrapperBuilder.exe /wfx /p=$(TargetPath) /v /$(ConfigurationName)" />
+    <Exec WorkingDirectory="$(SolutionDir)libs\TcPluginCore\clr4\" Command="WrapperBuilder.exe /wfx /p=$(TargetPath) /v /$(ConfigurationName)" />
   </Target>
 
   <Target Name="CopyToPublish" AfterTargets="Publish">
