@@ -21,6 +21,20 @@ Features:
 
 ### Installation
 
+> **Last build archives:** <br>
+> [Plugin](https://github.com/maximiliysiss/ts_docker/master/artifacts/docker) <br>
+> [Environment](https://github.com/maximiliysiss/ts_docker/master/artifacts/install) <br>
+
+#### Instruction
+
+1. Unzip `installaction.zip`
+2. Run `TcPluginLib.msi`
+3. Unzip `plugin.zip`
+4. Copy `TotalCommander.DockerPlugin.Adapter.dll` to TC root folder
+5. Open `TC -> Configuration -> Options -> Plugins -> WFX Plugins -> Add`
+6. Add new plugin
+7. Go to `//`
+
 ### Build
 
 ***Environment:***

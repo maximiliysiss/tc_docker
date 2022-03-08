@@ -10,7 +10,7 @@ jobs:
 
   build:
 
-    runs-on: windows-latest 
+    runs-on: windows-latest
 
     steps:
     - name: Checkout
@@ -24,19 +24,35 @@ jobs:
       with:
         dotnet-version: 6.0.x
 
-    # Execute all unit tests in the solution
+    # Execute all unit tests
     - name: Execute unit tests
       run: dotnet test
 
-    # Restore the application to populate the obj folder with RuntimeIdentifiers
+    # Restore
     - name: Restore the application
-      run: dotnet restore 
+      run: dotnet restore
 
     # Create
     - name: Build
       run: dotnet build -c Release
-  
+
     # Publish
     - name: Publish
       run: dotnet publish -c Release -o publish
+
+    # Artifacts
+    - name: Release
+      uses: actions/upload-artifact@v2
+      with:
+        name: plugin.zip
+        path: ./publish
+       target: docker
+
+    # Artifacts
+    - name: Release install
+      uses: actions/upload-artifact@v2
+      with:
+        name: installation.zip
+        path: ./install
+        target: docker
 
