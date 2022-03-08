@@ -46,7 +46,7 @@ jobs:
       with:
         name: plugin.zip
         path: ./publish
-       target: docker
+        target: docker
 
     # Artifacts
     - name: Release install
