@@ -1,10 +1,6 @@
 name: .NET Windows
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+on: [push]
 
 jobs:
 
@@ -22,7 +18,7 @@ jobs:
     - name: Install .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 8.0.x
 
     # Execute all unit tests
     - name: Execute unit tests
@@ -38,14 +34,14 @@ jobs:
 
     # Publish
     - name: Publish
-      run: dotnet publish -c Release -o publish
+      run: dotnet publish -c Release -o publish -r win-x64
 
     # Artifacts
     - name: Release
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
-        name: plugin.zip
+        name: plugin
         path: |
-          publish/
-          install/
+          publish/*.wfx*
+          publish/pluginst.inf
 

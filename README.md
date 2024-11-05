@@ -12,7 +12,7 @@ Features:
 2. Redirect commands from TotalCommander
 3. Delete files
 4. Create directories
-5. Open file by default program
+5. Open file by default program (copy file in %TEMP%)
 
 > **Notes:**<br>
 > Plugin cannot save changes<br>
@@ -24,19 +24,9 @@ Features:
 #### Instruction
 
 1. Unzip `plugin.zip`
-2. Run `install/TcPluginLib.msi`
-4. Copy `publish/TotalCommander.DockerPlugin.Adapter.dll` to TC root folder
-5. Open `TC -> Configuration -> Options -> Plugins -> WFX Plugins -> Add`
-6. Add new plugin file `TotalCommander.DockerPlugin.wfx/64`
-7. Go to `//`
-
-### Build
-
-***Environment:***
-
-| Technology | Environment |
-|:----------:|:-----------:|
-|    .NET    |    4.7.2    |
+2. Open `TC -> Configuration -> Options -> Plugins -> WFX Plugins -> Add`
+3. Add new plugin file `docker.wfx/64`
+4. Go to `//`
 
 ### Future features
 

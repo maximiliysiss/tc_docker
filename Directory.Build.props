@@ -1,8 +1,14 @@
 <Project>
 
   <PropertyGroup>
-    <TargetFramework>net471</TargetFramework>
-    <LangVersion>default</LangVersion>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PublishAot>true</PublishAot>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
 </Project>
