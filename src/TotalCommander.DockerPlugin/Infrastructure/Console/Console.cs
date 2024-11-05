@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using TotalCommander.Plugin.Shared.Infrastructure.Logger;
 
 namespace TotalCommander.DockerPlugin.Infrastructure.Console;
@@ -21,13 +22,22 @@ public static class Console
             UseShellExecute = false,
         };
 
-        process.Start();
+        string? output = null;
 
-        process.WaitForExit();
+        try
+        {
+            process.Start();
 
-        var output = process.ExitCode is 0
-            ? process.StandardOutput.ReadToEnd()
-            : null;
+            process.WaitForExit();
+
+            output = process.ExitCode is 0
+                ? process.StandardOutput.ReadToEnd()
+                : null;
+        }
+        catch (Exception ex)
+        {
+            s_logger.Log($"Cannot execute 'docker' because '{ex.Message}'");
+        }
 
         s_logger.Log($"Execution of 'docker {arguments}' is end with '{output ?? "nothing"}'");
 
