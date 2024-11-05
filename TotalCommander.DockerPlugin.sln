@@ -18,7 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{520A6937-698
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BB1774CE-1973-4FD0-898C-E6DACC121953}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TotalCommander.DockerPlugin.Adapter", "src\TotalCommander.DockerPlugin.Adapter\TotalCommander.DockerPlugin.Adapter.csproj", "{1A35C773-A1E3-4110-9E06-F4F0E2FDFEED}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TotalCommander.Plugin", "src\TotalCommander.Plugin\TotalCommander.Plugin.csproj", "{1A35C773-A1E3-4110-9E06-F4F0E2FDFEED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
