@@ -9,15 +9,21 @@ TotalCommander.DockerPlugin is plugin for total commander to interact with docke
 Features:
 
 1. Show docker containers like file system
-2. Redirect commands from TotalCommander
-3. Delete files
-4. Create directories
+2. Execution commands from TotalCommander cmdline
+3. Files
+   1. Create
+   2. Delete
+   3. Rename
+   4. Move
+4. Directories
+   1. Create
+   2. Delete
+   3. Rename
+   4. Move
 5. Open file by default program (copy file in %TEMP%)
 
 > **Notes:**<br>
 > Plugin cannot save changes<br>
-> Plugin cannot create new file - using `touch {filename}` in TotalCommander command line<br>
-> Plugin show file size in linux block-size
 
 ### Installation
 
@@ -32,6 +38,3 @@ Features:
 
 1. Plugin for Kubernetes
 2. Add editing for files
-3. Print correct size of files. Now print linux block-size for file instead of byte size
-4. Copy/Move from/to container
-5. Rename

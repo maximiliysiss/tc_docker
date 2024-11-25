@@ -10,14 +10,20 @@
       <_Config Include="[plugininstall]"/>
       <_Config Include="description="/>
       <_Config Include="type=wfx"/>
-      <_Config Include="file=docker.wfx64"/>
+      <_Config Include="file=docker.wfx64" Condition="'$(RuntimeIdentifier)' == 'win-x64'"/>
+      <_Config Include="file=docker.wfx" Condition="'$(RuntimeIdentifier)' == 'win-x86'"/>
     </ItemGroup>
 
     <Message Importance="high" Text="Generating pluginst.inf"/>
     <WriteLinesToFile File="$(PublishDir)/pluginst.inf" Overwrite="true" Lines="@(_Config)"/>
   </Target>
 
-  <Target Name="Wfx64Generate" AfterTargets="Publish">
+  <Target Name="WfxGenerate" AfterTargets="Publish" Condition="'$(RuntimeIdentifier)' == 'win-x86'">
+    <Message Importance="high" Text="Generating wfx"/>
+    <Copy SourceFiles="$(PublishDir)/$(TargetFileName)" DestinationFiles="$(PublishDir)/docker.wfx"/>
+  </Target>
+
+  <Target Name="Wfx64Generate" AfterTargets="Publish" Condition="'$(RuntimeIdentifier)' == 'win-x64'">
     <Message Importance="high" Text="Generating wfx64"/>
     <Copy SourceFiles="$(PublishDir)/$(TargetFileName)" DestinationFiles="$(PublishDir)/docker.wfx64"/>
   </Target>

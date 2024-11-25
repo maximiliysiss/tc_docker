@@ -18,7 +18,7 @@ jobs:
     - name: Install .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 9.0.x
 
     # Execute all unit tests
     - name: Execute unit tests
@@ -34,7 +34,9 @@ jobs:
 
     # Publish
     - name: Publish
-      run: dotnet publish -c Release -o publish -r win-x64
+      run: >
+          dotnet publish -c Release -o publish/x64 -r win-x64
+          dotnet publish -c Release -o publish/x86 -r win-x86
 
     # Artifacts
     - name: Release
@@ -42,6 +44,4 @@ jobs:
       with:
         name: plugin
         path: |
-          publish/*.wfx*
-          publish/pluginst.inf
-
+          publish/
