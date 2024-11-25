@@ -44,4 +44,5 @@ jobs:
       with:
         name: plugin
         path: |
-          publish/
+          publish/**/*.wfx*
+          publish/**/pluginst.inf
