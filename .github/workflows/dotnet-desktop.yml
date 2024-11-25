@@ -34,7 +34,7 @@ jobs:
 
     # Publish
     - name: Publish
-      run: >
+      run: |
           dotnet publish -c Release -o publish/x64 -r win-x64
           dotnet publish -c Release -o publish/x86 -r win-x86
 
