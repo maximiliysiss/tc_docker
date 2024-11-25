@@ -13,5 +13,8 @@ public interface IDockerExecutor
     void DeleteDirectory(Container container, string path);
     void CreateDirectory(Container container, string path);
     ExecuteResult Execute(Container container, string path, string command);
-    string CopyFileFromContainer(Container container, string path);
+    Models.CopyResult CopyOutFile(Container container, string path, string destination, bool overwrite);
+    Models.CopyResult CopyInFile(Container container, string path, string destination, bool overwrite);
+    Models.CopyResult Rename(Container container, string source, string destination, bool overwrite);
+    bool IsExists(Container container, string path);
 }

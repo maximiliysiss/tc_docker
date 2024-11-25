@@ -1,17 +1,20 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using TotalCommander.DockerPlugin.Commander.Docker;
+using TotalCommander.DockerPlugin.Plugin.Converter;
 using TotalCommander.DockerPlugin.Plugin.Models;
 using TotalCommander.Plugin.FileSystem.Interface;
 using TotalCommander.Plugin.FileSystem.Interface.Extensions;
 using TotalCommander.Plugin.FileSystem.Interface.Extensions.Models;
 using TotalCommander.Plugin.FileSystem.Models;
+using File = System.IO.File;
 using Path = TotalCommander.DockerPlugin.Infrastructure.Path.Path;
 
 namespace TotalCommander.DockerPlugin.Plugin;
 
-public sealed class DockerPlugin : IFileSystemPlugin, IFileHub, IDirectoryHub, IExecutionHub
+public sealed class DockerPlugin : IFileSystemPlugin, IFileHub, IDirectoryHub, IExecutionHub, IMoveHub
 {
     private readonly IDockerExecutor _dockerExecutor = new DockerDockerExecutor();
 
@@ -74,9 +77,11 @@ public sealed class DockerPlugin : IFileSystemPlugin, IFileHub, IDirectoryHub, I
 
         path = Path.AsLinux(Path.GetRootlessPath(path));
 
-        var tempPath = _dockerExecutor.CopyFileFromContainer(container, path);
+        var destination = System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.IO.Path.GetFileName(path));
 
-        var process = new Process { StartInfo = new ProcessStartInfo(tempPath) { UseShellExecute = true } };
+        _dockerExecutor.CopyOutFile(container, path, destination, overwrite: true);
+
+        var process = new Process { StartInfo = new ProcessStartInfo(destination) { UseShellExecute = true } };
         process.Start();
     }
 
@@ -111,5 +116,88 @@ public sealed class DockerPlugin : IFileSystemPlugin, IFileHub, IDirectoryHub, I
         path = Path.AsLinux(Path.GetRootlessPath(path));
 
         return _dockerExecutor.Execute(container, path, command);
+    }
+
+    public CopyResult Copy(string source, string destination, bool overwrite)
+    {
+        var direction = Direction.Out;
+
+        var container = GetContainer(source);
+        if (container is null)
+        {
+            container = GetContainer(destination);
+            if (container is null)
+                return CopyResult.Error;
+
+            direction = Direction.In;
+        }
+
+        var result = Commander.Docker.Models.CopyResult.Success;
+
+        if (direction is Direction.Out)
+        {
+            source = Path.AsLinux(Path.GetRootlessPath(source));
+            result = _dockerExecutor.CopyOutFile(container, source, destination, overwrite);
+        }
+
+        if (direction is Direction.In)
+        {
+            destination = Path.AsLinux(Path.GetRootlessPath(destination));
+            result = _dockerExecutor.CopyInFile(container, source, destination, overwrite);
+        }
+
+        return result.ToCopyResult();
+    }
+
+    public CopyResult Move(string source, string destination, bool overwrite)
+    {
+        var direction = Direction.Out;
+
+        var container = GetContainer(source);
+        if (container is null)
+        {
+            container = GetContainer(destination);
+            if (container is null)
+                return CopyResult.Error;
+
+            direction = Direction.In;
+        }
+
+        var result = Commander.Docker.Models.CopyResult.Success;
+
+        if (direction is Direction.Out)
+        {
+            source = Path.AsLinux(Path.GetRootlessPath(source));
+            result = _dockerExecutor.CopyOutFile(container, source, destination, overwrite);
+        }
+
+        if (direction is Direction.In)
+        {
+            destination = Path.AsLinux(Path.GetRootlessPath(destination));
+            result = _dockerExecutor.CopyInFile(container, source, destination, overwrite);
+        }
+
+        if (result is Commander.Docker.Models.CopyResult.Success)
+        {
+            if (direction is Direction.Out)
+                _dockerExecutor.DeleteFile(container, source);
+            else
+                File.Delete(source);
+        }
+
+        return result.ToCopyResult();
+    }
+
+    public CopyResult Rename(string source, string destination, bool overwrite)
+    {
+        var container = GetContainer(source);
+        if (container is null)
+            return CopyResult.Error;
+
+        source = Path.AsLinux(Path.GetRootlessPath(source));
+        destination = Path.AsLinux(Path.GetRootlessPath(destination));
+
+        var copyResult = _dockerExecutor.Rename(container, source, destination, overwrite);
+        return copyResult.ToCopyResult();
     }
 }

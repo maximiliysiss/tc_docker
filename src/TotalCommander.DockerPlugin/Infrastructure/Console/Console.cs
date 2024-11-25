@@ -31,7 +31,7 @@ public static class Console
             process.WaitForExit();
 
             output = process.ExitCode is 0
-                ? process.StandardOutput.ReadToEnd()
+                ? process.StandardOutput.ReadToEnd().Trim()
                 : null;
         }
         catch (Exception ex)

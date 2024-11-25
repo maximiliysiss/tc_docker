@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using TotalCommander.Plugin.FileSystem.Native.Bridge;
+using TotalCommander.Plugin.FileSystem.Native.Bridge.Models;
 
 namespace TotalCommander.DockerPlugin.NativeApi.Api;
 
@@ -61,4 +62,36 @@ public static class Api
     [UnmanagedCallersOnly(EntryPoint = "FsExecuteFileW")]
     public static int ExecuteFileW(IntPtr mainWin, IntPtr path, IntPtr command)
         => s_bridge.Execute(Marshal.PtrToStringAuto(path), Marshal.PtrToStringAuto(command));
+
+    [UnmanagedCallersOnly(EntryPoint = "FsGetFile")]
+    public static int GetFile(IntPtr remoteName, IntPtr localName, int copyFlags, IntPtr ri)
+        => s_bridge.CopyFile(Marshal.PtrToStringAuto(remoteName), Marshal.PtrToStringAuto(localName), (CopyFlag)copyFlags);
+
+    [UnmanagedCallersOnly(EntryPoint = "FsGetFileW")]
+    public static int GetFileW(IntPtr remoteName, IntPtr localName, int copyFlags, IntPtr ri)
+        => s_bridge.CopyFile(Marshal.PtrToStringAuto(remoteName), Marshal.PtrToStringAuto(localName), (CopyFlag)copyFlags);
+
+    [UnmanagedCallersOnly(EntryPoint = "FsPutFile")]
+    public static int CreateFile(IntPtr localName, IntPtr remoteName, int copyFlags)
+        => s_bridge.CopyFile(Marshal.PtrToStringAuto(localName), Marshal.PtrToStringAuto(remoteName), (CopyFlag)copyFlags);
+
+    [UnmanagedCallersOnly(EntryPoint = "FsPutFileW")]
+    public static int CreateFileW(IntPtr localName, IntPtr remoteName, int copyFlags)
+        => s_bridge.CopyFile(Marshal.PtrToStringAuto(localName), Marshal.PtrToStringAuto(remoteName), (CopyFlag)copyFlags);
+
+    [UnmanagedCallersOnly(EntryPoint = "FsRenMovFile")]
+    public static int RenMoveFile(IntPtr oldName, IntPtr newName, bool move, bool overwrite, IntPtr ri)
+        => RenMoveFileInternal(oldName, newName, move, overwrite);
+
+    [UnmanagedCallersOnly(EntryPoint = "FsRenMovFileW")]
+    public static int RenMoveFileW(IntPtr oldName, IntPtr newName, bool move, bool overwrite, IntPtr ri)
+        => RenMoveFileInternal(oldName, newName, move, overwrite);
+
+    private static int RenMoveFileInternal(IntPtr oldName, IntPtr newName, bool move, bool overwrite)
+    {
+        var copyFlag = (move ? CopyFlag.Move : CopyFlag.None) |
+                       (overwrite ? CopyFlag.Overwrite : CopyFlag.None);
+
+        return s_bridge.RenameOrMove(Marshal.PtrToStringAuto(oldName), Marshal.PtrToStringAuto(newName), copyFlag);
+    }
 }

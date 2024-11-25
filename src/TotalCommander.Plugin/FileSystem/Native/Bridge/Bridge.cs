@@ -3,9 +3,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using TotalCommander.Plugin.FileSystem.Interface;
 using TotalCommander.Plugin.FileSystem.Interface.Extensions;
+using TotalCommander.Plugin.FileSystem.Interface.Extensions.Models;
+using TotalCommander.Plugin.FileSystem.Models;
 using TotalCommander.Plugin.FileSystem.Native.Bridge.Infrastructure;
 using TotalCommander.Plugin.FileSystem.Native.Bridge.Models;
 using TotalCommander.Plugin.Shared.Infrastructure.Logger;
+using File = System.IO.File;
 
 namespace TotalCommander.Plugin.FileSystem.Native.Bridge;
 
@@ -134,5 +137,61 @@ public sealed class Bridge(IFileSystemPlugin plugin)
             (plugin as IFileHub)?.Open(path);
             return 0;
         }
+    }
+
+    public int CopyFile(string? source, string? destination, CopyFlag flags)
+    {
+        if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(destination))
+            return 0;
+
+        if (plugin is not IMoveHub hub)
+            return 0;
+
+        var isOverwrite = flags.HasFlag(CopyFlag.Overwrite);
+
+        return flags switch
+        {
+            _ when flags.HasFlag(CopyFlag.Move) => Move(),
+            _ => Copy()
+        };
+
+        int Copy()
+        {
+            var copyResult = hub.Copy(source, destination, isOverwrite);
+
+            return copyResult switch
+            {
+                CopyResult.Exists => NativeConstants.FileExists,
+                _ => 0
+            };
+        }
+
+        int Move()
+        {
+            var copyResult = hub.Move(source, destination, isOverwrite);
+
+            return copyResult switch
+            {
+                CopyResult.Exists => NativeConstants.FileExists,
+                _ => 0
+            };
+        }
+    }
+
+    public int RenameOrMove(string? oldName, string? newName, CopyFlag flags)
+    {
+        if (string.IsNullOrEmpty(oldName) || string.IsNullOrEmpty(newName))
+            return 0;
+
+        if (plugin is not IMoveHub hub)
+            return 0;
+
+        var result = hub.Rename(oldName, newName, flags.HasFlag(CopyFlag.Overwrite));
+
+        return result switch
+        {
+            CopyResult.Exists => NativeConstants.FileExists,
+            _ => 0
+        };
     }
 }

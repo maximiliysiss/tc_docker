@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using TotalCommander.DockerPlugin.Commander.Elements;
-using TotalCommander.DockerPlugin.Infrastructure.Path;
 using TotalCommander.DockerPlugin.Plugin.Models;
 using TotalCommander.Plugin.FileSystem.Interface.Extensions.Models;
 using TotalCommander.Plugin.FileSystem.Models;
 using Console = TotalCommander.DockerPlugin.Infrastructure.Console.Console;
-using Directory = System.IO.Directory;
-using Path = System.IO.Path;
+using CopyResult = TotalCommander.DockerPlugin.Commander.Docker.Models.CopyResult;
+using File = System.IO.File;
 
 namespace TotalCommander.DockerPlugin.Commander.Docker;
 
@@ -36,7 +35,7 @@ public sealed class DockerDockerExecutor : IDockerExecutor
 
     public IEnumerable<Entry> EnumerateContainer(Container container, string path)
     {
-        var output = Console.Execute($"exec {container.Id} ls -s --block-size=1 -F {path}");
+        var output = Console.Execute($"exec {container.Id} ls -lF {path}");
 
         if (output is null)
             return [];
@@ -60,12 +59,48 @@ public sealed class DockerDockerExecutor : IDockerExecutor
             : ExecuteResult.Success;
     }
 
-    public string CopyFileFromContainer(Container container, string path)
+    public CopyResult CopyOutFile(Container container, string path, string destination, bool overwrite)
     {
-        var hostPath = Path.Combine(Path.GetTempPath(), Path.GetFileName(path));
+        if (File.Exists(destination) && overwrite is false)
+            return CopyResult.Exists;
 
-        Console.Execute($"cp {container.Id}:{path} {hostPath}");
+        var execute = Console.Execute($"cp {container.Id}:{path} {destination}");
 
-        return hostPath;
+        return execute is not null
+            ? CopyResult.Success
+            : CopyResult.Failure;
+    }
+
+    public CopyResult CopyInFile(Container container, string path, string destination, bool overwrite)
+    {
+        if (IsExists(container, destination) && overwrite is false)
+            return CopyResult.Exists;
+
+        var execute = Console.Execute($"cp {path} {container.Id}:{destination}");
+
+        return execute is not null
+            ? CopyResult.Success
+            : CopyResult.Failure;
+    }
+
+    public CopyResult Rename(Container container, string source, string destination, bool overwrite)
+    {
+        if (IsExists(container, destination) && overwrite is false)
+            return CopyResult.Exists;
+
+        var execute = Console.Execute($"exec {container.Id} bash -c \"mv -f {source} {destination}\"");
+
+        return execute is not null
+            ? CopyResult.Success
+            : CopyResult.Failure;
+    }
+
+    public bool IsExists(Container container, string path)
+    {
+        const string expectedOutput = "exists";
+
+        var execute = Console.Execute($"exec {container.Id} bash -c \"[ -f {path} ] && echo '{expectedOutput}'\"");
+
+        return execute is expectedOutput;
     }
 }
