@@ -1,6 +1,6 @@
 # 🐳 TotalCommander Docker/Kubernetes Plugin
 
-**TotalCommander Docker/Kubernetes Plugin** — a plugin for Total Commander that lets you browse and interact with Docker containers as if they were part of the filesystem.
+**TotalCommander Docker/Kubernetes Plugin** is a Total Commander extension that allows you to browse and interact with Docker and Kubernetes containers as if they were part of the local filesystem.
 
 ---
 
@@ -24,20 +24,34 @@
 
 ---
 
+## 🧩 Kubernetes Plugin Support
+
+The Kubernetes plugin provides the **same functionality and workflow** as the Docker plugin:
+
+- Browse clusters, namespaces, pods, and containers
+- Navigate the container filesystem seamlessly
+- Perform the same file and directory operations: create, delete, rename, move
+- Execute commands in the selected pod/container via the Total Commander command line
+
+If you are familiar with the Docker plugin, you can use the Kubernetes plugin in the **exact same way**, with no new learning curve.
+
+---
+
 ## 📥 Installation
 
-1. Unpack `plugin.zip`
+1. Unpack `docker/kubernetes.zip`
 2. In Total Commander, go to:
    `Configuration -> Options -> Plugins -> WFX Plugins -> Add`
-3. Add the plugin file `docker.wfx/64`
-4. Open the `//` directory to access containers
+3. Select the plugin file `docker/k8s.wfx` or `docker/k8s.wfx64`
+4. Open the `//` directory inside Total Commander to access containers
 
 ---
 
 ## 🚀 Roadmap
 
-- Kubernetes plugin support
-- File editing inside containers
+- Editing files directly inside containers
+- Performance improvements
+- Extended Kubernetes cluster browsing features
 
 ---
 

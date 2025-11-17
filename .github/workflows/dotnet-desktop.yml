@@ -35,14 +35,25 @@ jobs:
     # Publish
     - name: Publish
       run: |
-          dotnet publish -c Release -o publish/x64 -r win-x64
-          dotnet publish -c Release -o publish/x86 -r win-x86
+          dotnet publish ./src/TotalCommander.DockerPlugin/TotalCommander.DockerPlugin.csproj -c Release -o publish/docker/x64 -r win-x64
+          dotnet publish ./src/TotalCommander.DockerPlugin/TotalCommander.DockerPlugin.csproj -c Release -o publish/docker/x86 -r win-x86
+
+          dotnet publish ./src/TotalCommander.KubernetesPlugin/TotalCommander.KubernetesPlugin.csproj -c Release -o publish/k8s/x64 -r win-x64
+          dotnet publish ./src/TotalCommander.KubernetesPlugin/TotalCommander.KubernetesPlugin.csproj -c Release -o publish/k8s/x86 -r win-x86
 
     # Artifacts
-    - name: Release
+    - name: Docker release artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: plugin
+        name: docker
         path: |
-          publish/**/*.wfx*
-          publish/**/pluginst.inf
+          publish/docker/**/*.wfx*
+          publish/docker/**/pluginst.inf
+
+    - name: Kubernetes release artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: kubernetes
+        path: |
+          publish/k8s/**/*.wfx*
+          publish/k8s/**/pluginst.inf
