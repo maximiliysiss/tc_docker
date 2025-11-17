@@ -12,7 +12,7 @@ using TotalCommander.Plugin.Shared.Infrastructure.Logger;
 using Console = TotalCommander.Plugin.Infrastructure.Console.Console;
 using Directory = System.IO.Directory;
 using File = System.IO.File;
-using Os = TotalCommander.DockerPlugin.Infrastructure.Path.OperatingSystem;
+using OperatingSystem = TotalCommander.Plugin.Infrastructure.Path.OperatingSystem;
 
 namespace TotalCommander.DockerPlugin.Commander.Docker;
 
@@ -140,7 +140,7 @@ public sealed class DockerExecutor : IDockerExecutor
             return copyResult;
 
         if (direction == Direction.In && source.LocalPath is not null)
-            Os.Delete(source.LocalPath);
+            OperatingSystem.Delete(source.LocalPath);
 
         if (direction == Direction.Out)
         {

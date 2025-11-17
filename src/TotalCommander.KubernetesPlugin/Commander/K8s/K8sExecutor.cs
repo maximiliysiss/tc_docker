@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using TotalCommander.KubernetesPlugin.Commander.Models;
 using TotalCommander.KubernetesPlugin.Infrastructure.Path;
 using TotalCommander.KubernetesPlugin.Plugin.Models;
 using TotalCommander.Plugin.FileSystem.Elements;
 using TotalCommander.Plugin.FileSystem.Interface.Extensions.Models;
 using TotalCommander.Plugin.FileSystem.Models;
+using TotalCommander.Plugin.FileSystem.Native.Bridge.Models;
 using TotalCommander.Plugin.Shared.Infrastructure.Logger;
 using Directory = System.IO.Directory;
 using File = System.IO.File;
+using OperatingSystem = TotalCommander.Plugin.Infrastructure.Path.OperatingSystem;
 
 namespace TotalCommander.KubernetesPlugin.Commander.K8s;
 
@@ -21,6 +22,8 @@ public sealed class K8sExecutor : IK8sExecutor
 
     public IEnumerable<Context> EnumerateContexts()
     {
+        _logger.Log("Enumerating contexts...");
+
         var output = _console.Execute("config get-contexts -o name");
         if (output is null)
             yield break;
@@ -33,6 +36,8 @@ public sealed class K8sExecutor : IK8sExecutor
 
     public IEnumerable<Namespace> EnumerateNamespaces(Context context)
     {
+        _logger.Log($"Enumerating namespaces for context '{context.Name}'...");
+
         var output = _console.Execute($"--context {context.Name} get namespaces -o name");
         if (output is null)
             yield break;
@@ -49,6 +54,8 @@ public sealed class K8sExecutor : IK8sExecutor
 
     public IEnumerable<Pod> EnumeratePods(Context context, Namespace ns)
     {
+        _logger.Log($"Enumerating pods for context '{context.Name}' and namespace '{ns.Name}' ...");
+
         var command = $"--context {context.Name} --namespace {ns.Name} get pods --field-selector=status.phase=Running -o name";
 
         var output = _console.Execute(command);
@@ -65,6 +72,8 @@ public sealed class K8sExecutor : IK8sExecutor
 
     public IEnumerable<Entry> EnumerateContainer(Path path)
     {
+        _logger.Log($"Enumerating container for '{path}'...");
+
         if (path is not { Context: not null, Namespace: not null, Pod: not null, LocalPath: not null })
             return [];
 
@@ -82,6 +91,8 @@ public sealed class K8sExecutor : IK8sExecutor
 
     public void CreateDirectory(Path path)
     {
+        _logger.Log($"Creating directory '{path}'...");
+
         if (!path.IsFull)
             return;
 
@@ -90,6 +101,8 @@ public sealed class K8sExecutor : IK8sExecutor
 
     public void DeleteDirectory(Path path)
     {
+        _logger.Log($"Deleting directory '{path}'...");
+
         if (!path.IsFull)
             return;
 
@@ -98,6 +111,8 @@ public sealed class K8sExecutor : IK8sExecutor
 
     public void CreateFile(Path path)
     {
+        _logger.Log($"Creating file '{path}'...");
+
         if (!path.IsFull)
             return;
 
@@ -106,6 +121,8 @@ public sealed class K8sExecutor : IK8sExecutor
 
     public void DeleteFile(Path path)
     {
+        _logger.Log($"Deleting file '{path}'...");
+
         if (!path.IsFull)
             return;
 
@@ -114,6 +131,8 @@ public sealed class K8sExecutor : IK8sExecutor
 
     public ExecuteResult Execute(Path path, string command)
     {
+        _logger.Log($"Executing command '{command}'...");
+
         if (!path.IsFull)
             return ExecuteResult.Error;
 
@@ -124,47 +143,38 @@ public sealed class K8sExecutor : IK8sExecutor
         return ExecuteResult.Success;
     }
 
-    public CopyResult Copy(Path source, Path destination, bool overwrite)
+    public CopyResult Copy(Path source, Path destination, bool overwrite, Direction direction)
     {
+        _logger.Log($"Copying from '{source}' to '{destination}' Direction: {direction} Overwrite: {overwrite}");
+
         if (source.LocalPath is null || destination.LocalPath is null)
             return CopyResult.Error;
 
-        var direction = (source, destination) switch
+        if (overwrite is false)
         {
-            ({ IsFull: true }, { IsFull: false }) => Direction.Out,
-            ({ IsFull: false }, { IsFull: true }) => Direction.In,
-            _ => Direction.Inter
-        };
+            var exists = File.Exists(destination.LocalPath) || Directory.Exists(destination.LocalPath);
+            if (direction is Direction.Out && exists)
+                return CopyResult.Exists;
 
-        _logger.Log($"Copying from '{source}' to '{destination}' Direction: {direction} Overwrite: {overwrite}");
-
-        if (direction is Direction.Inter && source.Segment is not null)
-        {
-            var tmpPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), Guid.NewGuid().ToString(), source.Segment);
-            var tmpDestination = new Path(Context: null, Namespace: null, Pod: null, LocalPath: tmpPath);
-
-            Copy(source, tmpDestination, true);
-            return Copy(tmpDestination, destination, overwrite);
+            if (direction is Direction.In && IsExists(destination))
+                return CopyResult.Exists;
         }
 
-        if (direction is Direction.Out && IsExists(destination) && overwrite is false)
-            return CopyResult.Exists;
-
-        if (direction is Direction.In && IsExists(destination) && overwrite is false)
-            return CopyResult.Exists;
-
-        var command = direction switch
+        string? command = direction switch
         {
             Direction.Out when source.IsFull =>
                 $"--context {source.Context.Name} --namespace {source.Namespace.Name} cp {source.Pod.Name}:{source.LocalPath} {destination.LocalPath}",
             Direction.In when destination.IsFull =>
                 $"--context {destination.Context.Name} --namespace {destination.Namespace.Name} cp {source.LocalPath} {destination.Pod.Name}:{destination.LocalPath}",
-            _ => throw new InvalidOperationException("Invalid copy direction.")
+            _ => null
         };
 
-        _console.Execute(command);
+        if (command is null)
+            return CopyResult.Error;
 
-        return CopyResult.Success;
+        var execute = _console.Execute(command);
+
+        return execute is null ? CopyResult.Error : CopyResult.Success;
     }
 
     private bool IsExists(Path path)
@@ -182,6 +192,8 @@ public sealed class K8sExecutor : IK8sExecutor
 
     public CopyResult Rename(Path source, Path destination, bool overwrite)
     {
+        _logger.Log($"Renaming file '{source}' to '{destination}', overwrite: {overwrite}");
+
         if (!source.IsFull || !destination.IsFull)
             return CopyResult.Error;
 
@@ -194,39 +206,27 @@ public sealed class K8sExecutor : IK8sExecutor
         else
             command += $"-n {source.LocalPath} {destination.LocalPath}";
 
-        _console.Execute(command);
+        var execute = _console.Execute(command);
 
-        return CopyResult.Success;
+        return execute is null ? CopyResult.Error : CopyResult.Success;
     }
 
-    public CopyResult Move(Path source, Path destination, bool overwrite)
+    public CopyResult Move(Path source, Path destination, bool overwrite, Direction direction)
     {
-        var result = Copy(source, destination, overwrite);
+        _logger.Log($"Moving from '{source}' to '{destination}' Direction: {direction} Overwrite: {overwrite}");
+
+        var result = Copy(source, destination, overwrite, direction);
         if (result is not CopyResult.Success)
             return result;
 
-        var direction = (source, destination) switch
+        if (direction is Direction.In && source.LocalPath is not null)
+            OperatingSystem.Delete(source.LocalPath);
+
+        if (direction is Direction.Out)
         {
-            ({ IsFull: true }, { IsFull: false }) => Direction.Out,
-            ({ IsFull: false }, { IsFull: true }) => Direction.In,
-            _ => Direction.Inter
-        };
-
-        _logger.Log($"Moving from '{source}' to '{destination}' Direction: {direction} Overwrite: {overwrite}");
-
-        if (direction is Direction.In)
-        {
-            if (File.Exists(source.LocalPath))
-                File.Delete(source.LocalPath);
-
-            if (Directory.Exists(source.LocalPath))
-                Directory.Delete(source.LocalPath);
-
-            return result;
+            DeleteDirectory(source);
+            DeleteFile(source);
         }
-
-        DeleteDirectory(source);
-        DeleteFile(source);
 
         return result;
     }

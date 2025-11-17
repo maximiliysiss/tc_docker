@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using TotalCommander.KubernetesPlugin.Plugin;
 using TotalCommander.Plugin.FileSystem.Native.Bridge;
@@ -12,19 +11,10 @@ public static class Api
     private static readonly Bridge s_bridge = new(new K8sPlugin());
 
     [UnmanagedCallersOnly(EntryPoint = "FsInit")]
-    public static int Init(int pluginNumber, IntPtr progressProc, IntPtr logProc, IntPtr requestProc) => InitInternal();
+    public static int Init(int pluginNumber, IntPtr progressProc, IntPtr logProc, IntPtr requestProc) => s_bridge.Init();
 
     [UnmanagedCallersOnly(EntryPoint = "FsInitW")]
-    public static int InitW(int pluginNumber, IntPtr progressProcW, IntPtr logProcW, IntPtr requestProcW) => InitInternal();
-
-    private static int InitInternal()
-    {
-        Trace.Listeners.Add(new TextWriterTraceListener("kubernetes.log") { TraceOutputOptions = TraceOptions.DateTime });
-
-        Trace.AutoFlush = true;
-
-        return 0;
-    }
+    public static int InitW(int pluginNumber, IntPtr progressProcW, IntPtr logProcW, IntPtr requestProcW) => s_bridge.Init();
 
     [UnmanagedCallersOnly(EntryPoint = "FsFindFirst")]
     public static IntPtr FindFirst(IntPtr path, IntPtr findFile) => FindFirstInternal(Marshal.PtrToStringAuto(path), findFile, false);

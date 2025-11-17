@@ -6,17 +6,11 @@ namespace TotalCommander.KubernetesPlugin.Infrastructure.Path;
 
 public sealed record Path(Context? Context, Namespace? Namespace, Pod? Pod, string? LocalPath)
 {
+    public override string ToString() =>
+        $"{Context?.Name ?? "<empty context>"} / {Namespace?.Name ?? "<empty namespace>"} / {Pod?.Name ?? "<empty pod>"} -> {LocalPath ?? "<empty path>"}";
+
     private const StringSplitOptions Options = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
     private static string AsLinux(string path) => path.Replace('\\', '/');
-
-    public static Path Parse(string path, Environment environment)
-    {
-        var parsed = Parse(path);
-
-        return environment.Has(parsed)
-            ? parsed
-            : new Path(Context: null, Namespace: null, Pod: null, LocalPath: path);
-    }
 
     public static Path Parse(string path)
     {

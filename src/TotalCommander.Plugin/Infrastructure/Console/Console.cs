@@ -72,7 +72,7 @@ public sealed class Console(string command)
 
         s_logger.Log($"Execution of '{command} {arguments}' is end with '{output ?? "<no output>"}'");
 
-        return output;
+        return output ?? string.Empty;
 
         void Output(object _, DataReceivedEventArgs e)
         {

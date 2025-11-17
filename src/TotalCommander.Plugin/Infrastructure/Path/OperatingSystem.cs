@@ -1,8 +1,8 @@
 ﻿using System.IO;
 
-namespace TotalCommander.DockerPlugin.Infrastructure.Path;
+namespace TotalCommander.Plugin.Infrastructure.Path;
 
-internal static class OperatingSystem
+public static class OperatingSystem
 {
     public static void Delete(string path)
     {

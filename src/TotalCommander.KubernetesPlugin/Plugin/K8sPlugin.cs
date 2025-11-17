@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Linq;
 using TotalCommander.KubernetesPlugin.Commander.K8s;
 using TotalCommander.KubernetesPlugin.Infrastructure.Path;
-using TotalCommander.KubernetesPlugin.Plugin.Models;
 using TotalCommander.Plugin.FileSystem.Interface;
 using TotalCommander.Plugin.FileSystem.Interface.Extensions;
 using TotalCommander.Plugin.FileSystem.Interface.Extensions.Models;
@@ -17,11 +16,15 @@ public sealed class K8sPlugin : IFileSystemPlugin, IFileHub, IDirectoryHub, IExe
 {
     private readonly IK8sExecutor _executor = new K8sExecutor();
 
-    private Context[] _contexts = [];
-    private Namespace[] _namespaces = [];
-    private Pod[] _pods = [];
-
     public string Name => "kubernetes";
+
+    public void Init()
+    {
+#if DEBUG
+        Trace.AutoFlush = true;
+        Trace.Listeners.Add(new TextWriterTraceListener("k8s.log"));
+#endif
+    }
 
     public IEnumerable<Entry> EnumerateEntries(string path)
     {
@@ -29,15 +32,11 @@ public sealed class K8sPlugin : IFileSystemPlugin, IFileHub, IDirectoryHub, IExe
 
         return parsed switch
         {
-            { Context: null } => _contexts = _executor.EnumerateContexts().ToArray(),
-            { Namespace: null } => _namespaces = _executor.EnumerateNamespaces(parsed.Context).ToArray(),
-            { Pod: null } => _pods = _executor.EnumeratePods(parsed.Context, parsed.Namespace).ToArray(),
+            { Context: null } => _executor.EnumerateContexts().ToArray(),
+            { Namespace: null } => _executor.EnumerateNamespaces(parsed.Context).ToArray(),
+            { Pod: null } => _executor.EnumeratePods(parsed.Context, parsed.Namespace).ToArray(),
             _ => _executor.EnumerateContainer(parsed),
         };
-    }
-
-    public void Init()
-    {
     }
 
     void IFileHub.Create(string path) => _executor.CreateFile(Path.Parse(path));
@@ -57,21 +56,39 @@ public sealed class K8sPlugin : IFileSystemPlugin, IFileHub, IDirectoryHub, IExe
 
         var destination = new Path(Context: null, Namespace: null, Pod: null, LocalPath: relative);
 
-        _executor.Copy(parsed, destination, overwrite: true);
+        _executor.Copy(parsed, destination, overwrite: true, Direction.Out);
 
         Process.Start(new ProcessStartInfo(relative) { UseShellExecute = true });
     }
 
     public CopyResult Copy(string source, string destination, bool overwrite, Direction direction)
     {
-        var environment = new Environment(_contexts, _namespaces, _pods);
-        return _executor.Copy(Path.Parse(source, environment), Path.Parse(destination, environment), overwrite);
+        var currentDirectory = Directory.GetCurrentDirectory();
+
+        var sourcePath = direction == Direction.In
+            ? new Path(null, null, null, System.IO.Path.GetRelativePath(currentDirectory, source))
+            : Path.Parse(source);
+
+        var destinationPath = direction == Direction.In
+            ? Path.Parse(destination)
+            : new Path(null, null, null, System.IO.Path.GetRelativePath(currentDirectory, destination));
+
+        return _executor.Copy(sourcePath, destinationPath, overwrite, direction);
     }
 
     public CopyResult Move(string source, string destination, bool overwrite, Direction direction)
     {
-        var environment = new Environment(_contexts, _namespaces, _pods);
-        return _executor.Move(Path.Parse(source, environment), Path.Parse(destination, environment), overwrite);
+        var currentDirectory = Directory.GetCurrentDirectory();
+
+        var sourcePath = direction == Direction.In
+            ? new Path(null, null, null, System.IO.Path.GetRelativePath(currentDirectory, source))
+            : Path.Parse(source);
+
+        var destinationPath = direction == Direction.In
+            ? Path.Parse(destination)
+            : new Path(null, null, null, System.IO.Path.GetRelativePath(currentDirectory, destination));
+
+        return _executor.Move(sourcePath, destinationPath, overwrite, direction);
     }
 
     public CopyResult Rename(string source, string destination, bool overwrite)
