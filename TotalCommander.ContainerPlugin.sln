@@ -20,6 +20,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BB1774CE
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TotalCommander.Plugin", "src\TotalCommander.Plugin\TotalCommander.Plugin.csproj", "{1A35C773-A1E3-4110-9E06-F4F0E2FDFEED}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TotalCommander.KubernetesPlugin", "src\TotalCommander.KubernetesPlugin\TotalCommander.KubernetesPlugin.csproj", "{67707592-0CD1-4CF0-9332-955DF67F3F00}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TotalCommander.Plugin.UnitTests", "tests\TotalCommander.Plugin.UnitTests\TotalCommander.Plugin.UnitTests.csproj", "{04A2EA3E-7440-43E1-8BD8-723C072AEC4F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,9 +41,19 @@ Global
 		{1A35C773-A1E3-4110-9E06-F4F0E2FDFEED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1A35C773-A1E3-4110-9E06-F4F0E2FDFEED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1A35C773-A1E3-4110-9E06-F4F0E2FDFEED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67707592-0CD1-4CF0-9332-955DF67F3F00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67707592-0CD1-4CF0-9332-955DF67F3F00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67707592-0CD1-4CF0-9332-955DF67F3F00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67707592-0CD1-4CF0-9332-955DF67F3F00}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04A2EA3E-7440-43E1-8BD8-723C072AEC4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04A2EA3E-7440-43E1-8BD8-723C072AEC4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04A2EA3E-7440-43E1-8BD8-723C072AEC4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04A2EA3E-7440-43E1-8BD8-723C072AEC4F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A0C92103-6E9E-4994-9741-D457BB7B3016} = {520A6937-698C-44CB-A507-5B488D8FD13D}
 		{1A35C773-A1E3-4110-9E06-F4F0E2FDFEED} = {520A6937-698C-44CB-A507-5B488D8FD13D}
+		{67707592-0CD1-4CF0-9332-955DF67F3F00} = {520A6937-698C-44CB-A507-5B488D8FD13D}
+		{04A2EA3E-7440-43E1-8BD8-723C072AEC4F} = {BB1774CE-1973-4FD0-898C-E6DACC121953}
 	EndGlobalSection
 EndGlobal

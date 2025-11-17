@@ -1,22 +1,35 @@
 ﻿using System;
 using TotalCommander.Plugin.FileSystem.Models;
 
-namespace TotalCommander.DockerPlugin.Commander.Elements;
+namespace TotalCommander.Plugin.FileSystem.Elements;
 
 public static class EntryFactory
 {
     public static Entry Create(string entry)
     {
-        const int nameIndex = 8;
-        const int sizeIndex = 4;
+        var nameIndex = 8;
+        var sizeIndex = 4;
+        const int rightsIndex = 0;
 
         var parts = entry.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
-        var key = (ElementsType)parts[nameIndex][^1];
+        var rights = parts[rightsIndex];
 
+        if (rights.IndexOfAny(['c', 'b']) is not -1)
+        {
+            nameIndex++;
+            sizeIndex++;
+        }
+
+        var fullName = parts[nameIndex];
+
+        var key = (ElementsType)fullName[^1];
         var isDefined = Convert.ToInt32(Enum.IsDefined(key));
 
-        var name = parts[nameIndex][..^isDefined];
+        if (rights.Contains('l'))
+            key = (ElementsType)parts[^1][^1];
+
+        var name = fullName[..^isDefined];
 
         return key switch
         {

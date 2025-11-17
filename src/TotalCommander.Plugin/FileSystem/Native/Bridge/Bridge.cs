@@ -4,11 +4,9 @@ using System.Collections.Generic;
 using TotalCommander.Plugin.FileSystem.Interface;
 using TotalCommander.Plugin.FileSystem.Interface.Extensions;
 using TotalCommander.Plugin.FileSystem.Interface.Extensions.Models;
-using TotalCommander.Plugin.FileSystem.Models;
 using TotalCommander.Plugin.FileSystem.Native.Bridge.Infrastructure;
 using TotalCommander.Plugin.FileSystem.Native.Bridge.Models;
 using TotalCommander.Plugin.Shared.Infrastructure.Logger;
-using File = System.IO.File;
 
 namespace TotalCommander.Plugin.FileSystem.Native.Bridge;
 
@@ -17,6 +15,12 @@ public sealed class Bridge(IFileSystemPlugin plugin)
     private readonly ILogger _logger = new TraceLogger("default.log");
 
     private readonly ConcurrentDictionary<IntPtr, IEnumerator<FileSystem.Models.Entry>> _handles = new();
+
+    public int Init()
+    {
+        plugin.Init();
+        return 0;
+    }
 
     public IntPtr FindFirst(string? path, IntPtr findFile, bool isUnicode)
     {
@@ -139,7 +143,7 @@ public sealed class Bridge(IFileSystemPlugin plugin)
         }
     }
 
-    public int CopyFile(string? source, string? destination, CopyFlag flags)
+    public int CopyFile(string? source, string? destination, CopyFlag flags, Direction direction)
     {
         if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(destination))
             return 0;
@@ -157,7 +161,7 @@ public sealed class Bridge(IFileSystemPlugin plugin)
 
         int Copy()
         {
-            var copyResult = hub.Copy(source, destination, isOverwrite);
+            var copyResult = hub.Copy(source, destination, isOverwrite, direction);
 
             return copyResult switch
             {
@@ -168,7 +172,7 @@ public sealed class Bridge(IFileSystemPlugin plugin)
 
         int Move()
         {
-            var copyResult = hub.Move(source, destination, isOverwrite);
+            var copyResult = hub.Move(source, destination, isOverwrite, direction);
 
             return copyResult switch
             {

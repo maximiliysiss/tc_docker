@@ -1,30 +1,41 @@
 ﻿using System;
-using System.Linq;
+using TotalCommander.DockerPlugin.Plugin.Models;
+using TotalCommander.Plugin.Shared.Infrastructure.Logger;
 
 namespace TotalCommander.DockerPlugin.Infrastructure.Path;
 
-public static class Path
+public sealed record Path(Container? Container, string? LocalPath)
 {
-    public static bool IsRoot(string path) => path == $"{System.IO.Path.DirectorySeparatorChar}";
+    public override string ToString() => $"{Container?.Name ?? "<empty container>"} -> {LocalPath ?? "<empty path>"}";
 
-    public static string GetRootDirectory(string path)
+    private static readonly ILogger s_logger = new TraceLogger("path.log");
+
+    private const StringSplitOptions Options = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
+
+    public static Path Parse(string path)
     {
-        return path
-            .Split(System.IO.Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries)
-            .First();
+        var parts = path.Split(System.IO.Path.DirectorySeparatorChar, Options);
+
+        Container? container = null;
+
+        if (parts is not [var name, .. var local])
+        {
+            s_logger.Log($"Path.Parse: No container name found in path '{path}'");
+            return new Path(container, path);
+        }
+
+        container = new Container(name);
+
+        var localPath = "/";
+        if (local is not [])
+        {
+            var index = path.IndexOf(System.IO.Path.DirectorySeparatorChar, 1);
+            localPath = AsLinux(path[index..]);
+        }
+
+        s_logger.Log($"Path.Parse: Local path '{localPath}' and container '{container.Name}' parsed from path '{path}'");
+        return new Path(container, localPath);
     }
 
-    public static string GetRootlessPath(string path)
-    {
-        var separator = System.IO.Path.DirectorySeparatorChar;
-
-        var rootlessParts = path
-            .Split(separator, StringSplitOptions.RemoveEmptyEntries)
-            .Skip(1);
-
-        return $"{separator}{string.Join(separator, rootlessParts)}";
-    }
-
-    public static string AsLinux(string path) => path.Replace('\\', '/');
-    public static string AsWindows(string path) => path.Replace('/', '\\');
+    private static string AsLinux(string path) => path.Replace('\\', '/');
 }

@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\TotalCommander.Plugin\TotalCommander.Plugin.csproj"/>
+  </ItemGroup>
+
+  <Target Name="ConfigGenerator" AfterTargets="Publish">
+
+    <ItemGroup>
+      <_Config Include="[plugininstall]"/>
+      <_Config Include="description="/>
+      <_Config Include="type=wfx"/>
+      <_Config Include="file=k8s.wfx64" Condition="'$(RuntimeIdentifier)' == 'win-x64'"/>
+      <_Config Include="file=k8s.wfx" Condition="'$(RuntimeIdentifier)' == 'win-x86'"/>
+    </ItemGroup>
+
+    <Message Importance="high" Text="Generating pluginst.inf"/>
+    <WriteLinesToFile File="$(PublishDir)/pluginst.inf" Overwrite="true" Lines="@(_Config)"/>
+  </Target>
+
+  <Target Name="WfxGenerate" AfterTargets="Publish" Condition="'$(RuntimeIdentifier)' == 'win-x86'">
+    <Message Importance="high" Text="Generating wfx"/>
+    <Copy SourceFiles="$(PublishDir)/$(TargetFileName)" DestinationFiles="$(PublishDir)/k8s.wfx"/>
+  </Target>
+
+  <Target Name="Wfx64Generate" AfterTargets="Publish" Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+    <Message Importance="high" Text="Generating wfx64"/>
+    <Copy SourceFiles="$(PublishDir)/$(TargetFileName)" DestinationFiles="$(PublishDir)/k8s.wfx64"/>
+  </Target>
+
+</Project>

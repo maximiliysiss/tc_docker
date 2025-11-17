@@ -1,203 +1,86 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using TotalCommander.DockerPlugin.Commander.Docker;
-using TotalCommander.DockerPlugin.Plugin.Converter;
-using TotalCommander.DockerPlugin.Plugin.Models;
 using TotalCommander.Plugin.FileSystem.Interface;
 using TotalCommander.Plugin.FileSystem.Interface.Extensions;
 using TotalCommander.Plugin.FileSystem.Interface.Extensions.Models;
 using TotalCommander.Plugin.FileSystem.Models;
-using File = System.IO.File;
+using TotalCommander.Plugin.FileSystem.Native.Bridge.Models;
 using Path = TotalCommander.DockerPlugin.Infrastructure.Path.Path;
 
 namespace TotalCommander.DockerPlugin.Plugin;
 
 public sealed class DockerPlugin : IFileSystemPlugin, IFileHub, IDirectoryHub, IExecutionHub, IMoveHub
 {
-    private readonly IDockerExecutor _dockerExecutor = new DockerDockerExecutor();
-
-    private Dictionary<string, Container> _containers = new();
+    private readonly IDockerExecutor _dockerExecutor = new DockerExecutor();
 
     public string Name => "docker";
 
     public IEnumerable<Entry> EnumerateEntries(string path)
     {
-        return path switch
+        var parsed = Path.Parse(path);
+
+        return parsed switch
         {
-            _ when Path.IsRoot(path) => _dockerExecutor.EnumerateContainers(),
-            _ => EnumerateContainer(path)
+            { Container: null } => _dockerExecutor.EnumerateContainers(),
+            _ => _dockerExecutor.EnumerateContainer(parsed)
         };
     }
 
-    private IEnumerable<Entry> EnumerateContainer(string path)
+    public void Init()
     {
-        var container = GetContainer(path);
-        if (container is null)
-            return [];
-
-        path = Path.AsLinux(Path.GetRootlessPath(path));
-
-        return _dockerExecutor.EnumerateContainer(container, path);
+#if DEBUG
+        Trace.AutoFlush = true;
+        Trace.Listeners.Add(new TextWriterTraceListener("docker.log"));
+#endif
     }
 
-    private Container? GetContainer(string path)
-    {
-        var root = Path.GetRootDirectory(path);
-
-        if (_containers.TryGetValue(root, out var container))
-            return container;
-
-        _containers = _dockerExecutor
-            .EnumerateContainers()
-            .ToDictionary(c => c.Name);
-
-        return _containers.GetValueOrDefault(root);
-    }
-
-    void IFileHub.Create(string path) => throw new System.NotImplementedException();
-
-    void IFileHub.Delete(string path)
-    {
-        var container = GetContainer(path);
-        if (container is null)
-            return;
-
-        path = Path.AsLinux(Path.GetRootlessPath(path));
-
-        _dockerExecutor.DeleteFile(container, path);
-    }
+    void IFileHub.Create(string path) => _dockerExecutor.CreateFile(Path.Parse(path));
+    void IFileHub.Delete(string path) => _dockerExecutor.DeleteFile(Path.Parse(path));
+    void IDirectoryHub.Delete(string path) => _dockerExecutor.DeleteDirectory(Path.Parse(path));
+    void IDirectoryHub.Create(string path) => _dockerExecutor.CreateDirectory(Path.Parse(path));
+    public ExecuteResult Execute(string path, string command) => _dockerExecutor.Execute(Path.Parse(path), command);
 
     void IFileHub.Open(string path)
     {
-        var container = GetContainer(path);
-        if (container is null)
+        var localPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.IO.Path.GetFileName(path));
+
+        var source = Path.Parse(path);
+        var destination = new Path(Container: null, LocalPath: localPath);
+
+        var copyResult = _dockerExecutor.Copy(source, destination, overwrite: true, Direction.Out);
+        if (copyResult is CopyResult.Error)
             return;
 
-        path = Path.AsLinux(Path.GetRootlessPath(path));
-
-        var destination = System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.IO.Path.GetFileName(path));
-
-        _dockerExecutor.CopyOutFile(container, path, destination, overwrite: true);
-
-        var process = new Process { StartInfo = new ProcessStartInfo(destination) { UseShellExecute = true } };
-        process.Start();
+        Process.Start(new ProcessStartInfo(localPath) { UseShellExecute = true });
     }
 
-    void IDirectoryHub.Delete(string path)
+    public CopyResult Copy(string source, string destination, bool overwrite, Direction direction)
     {
-        var container = GetContainer(path);
-        if (container is null)
-            return;
+        var sourcePath = direction is Direction.In
+            ? new Path(Container: null, LocalPath: source)
+            : Path.Parse(source);
 
-        path = Path.AsLinux(Path.GetRootlessPath(path));
+        var destinationPath = direction is Direction.In
+            ? Path.Parse(destination)
+            : new Path(Container: null, LocalPath: destination);
 
-        _dockerExecutor.DeleteDirectory(container, path);
+        return _dockerExecutor.Copy(sourcePath, destinationPath, overwrite, direction);
     }
 
-    void IDirectoryHub.Create(string path)
+    public CopyResult Move(string source, string destination, bool overwrite, Direction direction)
     {
-        var container = GetContainer(path);
-        if (container is null)
-            return;
+        var sourcePath = direction is Direction.In
+            ? new Path(Container: null, LocalPath: source)
+            : Path.Parse(source);
 
-        path = Path.AsLinux(Path.GetRootlessPath(path));
+        var destinationPath = direction is Direction.In
+            ? Path.Parse(destination)
+            : new Path(Container: null, LocalPath: destination);
 
-        _dockerExecutor.CreateDirectory(container, path);
-    }
-
-    public ExecuteResult Execute(string path, string command)
-    {
-        var container = GetContainer(path);
-        if (container is null)
-            return ExecuteResult.Error;
-
-        path = Path.AsLinux(Path.GetRootlessPath(path));
-
-        return _dockerExecutor.Execute(container, path, command);
-    }
-
-    public CopyResult Copy(string source, string destination, bool overwrite)
-    {
-        var direction = Direction.Out;
-
-        var container = GetContainer(source);
-        if (container is null)
-        {
-            container = GetContainer(destination);
-            if (container is null)
-                return CopyResult.Error;
-
-            direction = Direction.In;
-        }
-
-        var result = Commander.Docker.Models.CopyResult.Success;
-
-        if (direction is Direction.Out)
-        {
-            source = Path.AsLinux(Path.GetRootlessPath(source));
-            result = _dockerExecutor.CopyOutFile(container, source, destination, overwrite);
-        }
-
-        if (direction is Direction.In)
-        {
-            destination = Path.AsLinux(Path.GetRootlessPath(destination));
-            result = _dockerExecutor.CopyInFile(container, source, destination, overwrite);
-        }
-
-        return result.ToCopyResult();
-    }
-
-    public CopyResult Move(string source, string destination, bool overwrite)
-    {
-        var direction = Direction.Out;
-
-        var container = GetContainer(source);
-        if (container is null)
-        {
-            container = GetContainer(destination);
-            if (container is null)
-                return CopyResult.Error;
-
-            direction = Direction.In;
-        }
-
-        var result = Commander.Docker.Models.CopyResult.Success;
-
-        if (direction is Direction.Out)
-        {
-            source = Path.AsLinux(Path.GetRootlessPath(source));
-            result = _dockerExecutor.CopyOutFile(container, source, destination, overwrite);
-        }
-
-        if (direction is Direction.In)
-        {
-            destination = Path.AsLinux(Path.GetRootlessPath(destination));
-            result = _dockerExecutor.CopyInFile(container, source, destination, overwrite);
-        }
-
-        if (result is Commander.Docker.Models.CopyResult.Success)
-        {
-            if (direction is Direction.Out)
-                _dockerExecutor.DeleteFile(container, source);
-            else
-                File.Delete(source);
-        }
-
-        return result.ToCopyResult();
+        return _dockerExecutor.Move(sourcePath, destinationPath, overwrite, direction);
     }
 
     public CopyResult Rename(string source, string destination, bool overwrite)
-    {
-        var container = GetContainer(source);
-        if (container is null)
-            return CopyResult.Error;
-
-        source = Path.AsLinux(Path.GetRootlessPath(source));
-        destination = Path.AsLinux(Path.GetRootlessPath(destination));
-
-        var copyResult = _dockerExecutor.Rename(container, source, destination, overwrite);
-        return copyResult.ToCopyResult();
-    }
+        => _dockerExecutor.Rename(Path.Parse(source), Path.Parse(destination), overwrite);
 }
