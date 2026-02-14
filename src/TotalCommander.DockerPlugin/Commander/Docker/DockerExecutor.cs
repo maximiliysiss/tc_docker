@@ -44,7 +44,7 @@ public sealed class DockerExecutor : IDockerExecutor
         if (path.Container is null)
             return [];
 
-        var output = _console.Execute($"exec {path.Container.Name} ls -lFL {path.LocalPath}");
+        var output = _console.Execute($"exec {path.Container.Name} stat -c \"%n\\0%A\\0%s\" {path.LocalPath}");
         if (output is null)
             return [];
 

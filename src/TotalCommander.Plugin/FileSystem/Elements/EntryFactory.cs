@@ -7,29 +7,16 @@ public static class EntryFactory
 {
     public static Entry Create(string entry)
     {
-        var nameIndex = 8;
-        var sizeIndex = 4;
-        const int rightsIndex = 0;
+        const int nameIndex = 0;
+        const int rightsIndex = 1;
+        const int sizeIndex = 2;
 
-        var parts = entry.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var parts = entry.Split('\0', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        var name = parts[nameIndex];
 
         var rights = parts[rightsIndex];
-
-        if (rights.IndexOfAny(['c', 'b']) is not -1)
-        {
-            nameIndex++;
-            sizeIndex++;
-        }
-
-        var fullName = string.Join(' ', parts[nameIndex..]);
-
-        var key = (ElementsType)fullName[^1];
-        var isDefined = Convert.ToInt32(Enum.IsDefined(key));
-
-        if (rights.Contains('l'))
-            key = (ElementsType)parts[^1][^1];
-
-        var name = fullName[..^isDefined].Trim('\'');
+        var key = (ElementsType)rights[0];
 
         return key switch
         {
@@ -40,11 +27,13 @@ public static class EntryFactory
 
     private enum ElementsType
     {
-        Directory = '/',
-        Executable = '*',
-        Symbol = '@',
-        Socket = '=',
-        Door = '>',
-        Pipe = '|'
+        File = '-',
+        Directory = 'd',
+        Link = 'l',
+        Character = 'c',
+        Block = 'b',
+        Socket = 's',
+        Pipe = 'p',
+        Unknown = '?',
     }
 }
