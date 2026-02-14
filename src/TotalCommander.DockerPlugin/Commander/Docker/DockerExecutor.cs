@@ -101,7 +101,14 @@ public sealed class DockerExecutor : IDockerExecutor
         if (path.Container is null)
             return ExecuteResult.Error;
 
-        _console.Execute($"exec {path.Container.Name} bash -c \"cd {path.LocalPath} && {command}\"");
+        string[] commands =
+        [
+            $"cd {path.LocalPath}",
+            command,
+            "exit"
+        ];
+
+        _console.Execute($"exec -i {path.Container.Name} bash", commands);
 
         return ExecuteResult.Success;
     }
@@ -172,7 +179,12 @@ public sealed class DockerExecutor : IDockerExecutor
             return false;
 
         const string expectedOutput = "exists";
-        var execute = _console.Execute($"exec {path.Container.Name} bash -c \"[ -f {path.LocalPath} ] && echo '{expectedOutput}'\"");
+
+        string[] commands = [
+
+        ];
+
+        var execute = _console.Execute($"exec -i {path.Container.Name} bash");
 
         _logger.Log($"IsExists: Checking existence of '{path}', result: '{execute}'");
 

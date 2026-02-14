@@ -1,5 +1,6 @@
 ﻿using System;
 using TotalCommander.DockerPlugin.Plugin.Models;
+using TotalCommander.Plugin.Infrastructure.Path;
 using TotalCommander.Plugin.Shared.Infrastructure.Logger;
 
 namespace TotalCommander.DockerPlugin.Infrastructure.Path;
@@ -30,12 +31,10 @@ public sealed record Path(Container? Container, string? LocalPath)
         if (local is not [])
         {
             var index = path.IndexOf(System.IO.Path.DirectorySeparatorChar, 1);
-            localPath = AsLinux(path[index..]);
+            localPath = LinuxOs.PathAs(path[index..]);
         }
 
         s_logger.Log($"Path.Parse: Local path '{localPath}' and container '{container.Name}' parsed from path '{path}'");
         return new Path(container, localPath);
     }
-
-    private static string AsLinux(string path) => path.Replace('\\', '/');
 }

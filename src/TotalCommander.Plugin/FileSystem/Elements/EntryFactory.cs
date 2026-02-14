@@ -21,7 +21,7 @@ public static class EntryFactory
             sizeIndex++;
         }
 
-        var fullName = parts[nameIndex];
+        var fullName = string.Join(' ', parts[nameIndex..]);
 
         var key = (ElementsType)fullName[^1];
         var isDefined = Convert.ToInt32(Enum.IsDefined(key));
@@ -29,7 +29,7 @@ public static class EntryFactory
         if (rights.Contains('l'))
             key = (ElementsType)parts[^1][^1];
 
-        var name = fullName[..^isDefined];
+        var name = fullName[..^isDefined].Trim('\'');
 
         return key switch
         {

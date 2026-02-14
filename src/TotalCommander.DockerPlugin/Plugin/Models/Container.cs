@@ -5,7 +5,7 @@ namespace TotalCommander.DockerPlugin.Plugin.Models;
 
 public sealed class Container(string name) : Entry
 {
-    public string Name { get; } = name;
+    public override string Name { get; } = name;
 
     public override TotalCommander.Plugin.FileSystem.Native.Models.Entry AsNative() => new(Name, FileAttributes.Directory);
 }
