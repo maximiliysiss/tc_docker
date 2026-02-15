@@ -15,7 +15,7 @@ public class EntryFactoryTests
         const string input = "symlink\0lrwxrwxrwx\015";
 
         // Act
-        var entry = EntryFactory.Create(input);
+        var entry = EntryFactory.Create(input, '\0');
 
         // Assert
         entry.Should().BeOfType<File>();
@@ -30,7 +30,7 @@ public class EntryFactoryTests
         // Arrange
 
         // Act
-        var entry = EntryFactory.Create(input);
+        var entry = EntryFactory.Create(input, '\0');
 
         // Assert
         entry.Should().BeOfType<File>();
@@ -59,7 +59,7 @@ public class EntryFactoryTests
         // Arrange
 
         // Act
-        var entry = EntryFactory.Create(input);
+        var entry = EntryFactory.Create(input, '\0');
 
         // Assert
         entry.Should().BeOfType(type);
