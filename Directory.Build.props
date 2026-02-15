@@ -11,4 +11,8 @@
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="TotalCommander.Plugin.UnitTests"/>
+  </ItemGroup>
+
 </Project>

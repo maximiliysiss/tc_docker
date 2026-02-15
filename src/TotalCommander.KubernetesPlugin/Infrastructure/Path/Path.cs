@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using TotalCommander.KubernetesPlugin.Plugin.Models;
+using TotalCommander.Plugin.Infrastructure.Path;
 
 namespace TotalCommander.KubernetesPlugin.Infrastructure.Path;
 
 public sealed record Path(Context? Context, Namespace? Namespace, Pod? Pod, string? LocalPath)
 {
+    public bool IsRoot => LocalPath is null or "/";
+
     public override string ToString() =>
         $"{Context?.Name ?? "<empty context>"} / {Namespace?.Name ?? "<empty namespace>"} / {Pod?.Name ?? "<empty pod>"} -> {LocalPath ?? "<empty path>"}";
 
     private const StringSplitOptions Options = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
-    private static string AsLinux(string path) => path.Replace('\\', '/');
 
     public static Path Parse(string path)
     {
@@ -33,7 +35,7 @@ public sealed record Path(Context? Context, Namespace? Namespace, Pod? Pod, stri
             localPath = "/";
 
             if (parts is [_, _, _, .. var local] && local.Length > 0)
-                localPath += AsLinux(string.Join(System.IO.Path.DirectorySeparatorChar, local));
+                localPath += LinuxOs.PathAs(string.Join(System.IO.Path.DirectorySeparatorChar, local));
         }
 
         return new Path(context, ns, pod, localPath);

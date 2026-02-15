@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using TotalCommander.Plugin.Shared.Infrastructure.Logger;
 
@@ -10,9 +11,11 @@ public sealed class Console(string command)
     private static readonly ILogger s_logger = new TraceLogger("console.log");
     private static readonly TimeSpan s_timeout = TimeSpan.FromMinutes(1);
 
-    public string? Execute(string arguments)
+    public string? Execute(string[] arguments, string? workingDirectory = null)
     {
-        s_logger.Log($"Begin execution of '{command} {arguments}'");
+        var argumentsOutput = string.Join(' ', arguments.DefaultIfEmpty("<no arguments>"));
+
+        s_logger.LogInfo($"Begin execution of '{command} {argumentsOutput}'");
 
         using var process = new Process();
 
@@ -20,13 +23,16 @@ public sealed class Console(string command)
 
         process.StartInfo = new ProcessStartInfo
         {
-            Arguments = arguments,
             FileName = command,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             CreateNoWindow = true,
             UseShellExecute = false,
+            WorkingDirectory = workingDirectory
         };
+
+        foreach (var argument in arguments)
+            process.StartInfo.ArgumentList.Add(argument);
 
         StringBuilder sb = new();
 
@@ -49,7 +55,7 @@ public sealed class Console(string command)
                 }
                 catch
                 {
-                    // ignored
+                    s_logger.LogError($"Cannot kill '{command} {argumentsOutput}'");
                 }
             }
 
@@ -57,7 +63,7 @@ public sealed class Console(string command)
         }
         catch (Exception ex)
         {
-            s_logger.Log($"Cannot execute '{command}' because '{ex.Message}'");
+            s_logger.LogError($"Cannot execute '{command}' because '{ex.Message}'");
         }
         finally
         {
@@ -65,12 +71,15 @@ public sealed class Console(string command)
             process.ErrorDataReceived -= Output;
         }
 
+        var output = sb.Length > 0 ? sb.ToString().Trim() : null;
+
         if (process.ExitCode != 0)
+        {
+            s_logger.LogError($"Execution of '{command} {argumentsOutput}' failed with output '{output ?? "<empty>"}'");
             return null;
+        }
 
-        var output = sb.Length > 0 ? sb.ToString() : null;
-
-        s_logger.Log($"Execution of '{command} {arguments}' is end with '{output ?? "<no output>"}'");
+        s_logger.LogInfo($"Execution of '{command} {argumentsOutput}' is end with '{output ?? "<empty>"}'");
 
         return output ?? string.Empty;
 

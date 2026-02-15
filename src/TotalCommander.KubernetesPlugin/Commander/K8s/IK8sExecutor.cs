@@ -18,7 +18,7 @@ public interface IK8sExecutor
     void CreateFile(Path path);
     void DeleteFile(Path path);
     ExecuteResult Execute(Path path, string command);
-    CopyResult Copy(Path source, Path destination, bool overwrite, Direction direction);
+    CopyResult Copy(Path source, Path destination, bool overwrite, Direction direction, string? workingDirectory);
     CopyResult Rename(Path source, Path destination, bool overwrite);
-    CopyResult Move(Path source, Path destination, bool overwrite, Direction direction);
+    CopyResult Move(Path source, Path destination, bool overwrite, Direction direction, string? workingDirectory);
 }
