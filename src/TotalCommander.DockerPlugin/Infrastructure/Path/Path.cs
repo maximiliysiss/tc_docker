@@ -22,7 +22,7 @@ public sealed record Path(Container? Container, string? LocalPath)
 
         if (parts is not [var name, .. var local])
         {
-            s_logger.Log($"Path.Parse: No container name found in path '{path}'");
+            s_logger.LogInfo($"Path.Parse: No container name found in path '{path}'");
             return new Path(container, path);
         }
 
@@ -35,7 +35,7 @@ public sealed record Path(Container? Container, string? LocalPath)
             localPath = LinuxOs.PathAs(path[index..]);
         }
 
-        s_logger.Log($"Path.Parse: Local path '{localPath}' and container '{container.Name}' parsed from path '{path}'");
+        s_logger.LogInfo($"Path.Parse: Local path '{localPath}' and container '{container.Name}' parsed from path '{path}'");
         return new Path(container, localPath);
     }
 }

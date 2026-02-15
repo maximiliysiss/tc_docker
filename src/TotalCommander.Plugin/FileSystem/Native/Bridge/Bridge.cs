@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using TotalCommander.Plugin.FileSystem.Interface;
 using TotalCommander.Plugin.FileSystem.Interface.Extensions;
 using TotalCommander.Plugin.FileSystem.Interface.Extensions.Models;
@@ -27,7 +28,7 @@ public sealed class Bridge(IFileSystemPlugin plugin)
         if (string.IsNullOrEmpty(path))
             return IntPtr.Zero;
 
-        _logger.Log($"Try to find in '{path}'");
+        _logger.LogInfo($"Try to find in '{path}'");
 
         var enumerator = plugin
             .EnumerateEntries(path)
@@ -77,7 +78,7 @@ public sealed class Bridge(IFileSystemPlugin plugin)
         if (plugin is not IFileHub hub)
             return false;
 
-        _logger.Log($"Deleting file '{fileName}'");
+        _logger.LogInfo($"Deleting file '{fileName}'");
 
         hub.Delete(fileName);
 
@@ -92,7 +93,7 @@ public sealed class Bridge(IFileSystemPlugin plugin)
         if (plugin is not IDirectoryHub hub)
             return false;
 
-        _logger.Log($"Deleting directory '{dirPath}'");
+        _logger.LogInfo($"Deleting directory '{dirPath}'");
 
         hub.Delete(dirPath);
 
@@ -107,7 +108,7 @@ public sealed class Bridge(IFileSystemPlugin plugin)
         if (plugin is not IDirectoryHub hub)
             return false;
 
-        _logger.Log($"Creating directory '{dirPath}'");
+        _logger.LogInfo($"Creating directory '{dirPath}'");
 
         hub.Create(dirPath);
 
@@ -119,7 +120,7 @@ public sealed class Bridge(IFileSystemPlugin plugin)
         if (string.IsNullOrEmpty(path) || string.IsNullOrEmpty(verb))
             return 0;
 
-        _logger.Log($"Execution of '{verb}' in '{path}'");
+        _logger.LogInfo($"Execution of '{verb}' in '{path}'");
 
         var parts = verb.Split(
             separator: " ",
@@ -190,7 +191,16 @@ public sealed class Bridge(IFileSystemPlugin plugin)
         if (plugin is not IMoveHub hub)
             return 0;
 
-        var result = hub.Rename(oldName, newName, flags.HasFlag(CopyFlag.Overwrite));
+        var overwrite = flags.HasFlag(CopyFlag.Overwrite);
+
+        var oldParent = Path.GetDirectoryName(oldName);
+        var newParent = Path.GetDirectoryName(newName);
+
+        var result = oldParent == newParent
+            ? hub.Rename(oldName, newName, overwrite)
+            : flags.HasFlag(CopyFlag.Move)
+                ? hub.Move(oldName, newName, overwrite, Direction.Inter)
+                : hub.Copy(oldName, newName, overwrite, Direction.Inter);
 
         return result switch
         {

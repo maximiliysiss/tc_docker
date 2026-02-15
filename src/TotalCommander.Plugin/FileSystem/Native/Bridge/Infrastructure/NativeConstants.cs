@@ -9,4 +9,6 @@ public static class NativeConstants
     public const int NoContent = 18;
 
     public const int FileExists = 1;
+
+    public const int FsNotSupported = -1;
 }

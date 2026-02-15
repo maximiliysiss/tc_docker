@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using TotalCommander.DockerPlugin.Commander.Docker;
 using TotalCommander.Plugin.FileSystem.Interface;
@@ -57,26 +58,44 @@ public sealed class DockerPlugin : IFileSystemPlugin, IFileHub, IDirectoryHub, I
 
     public CopyResult Copy(string source, string destination, bool overwrite, Direction direction)
     {
-        var sourcePath = direction is Direction.In
-            ? new Path(Container: null, LocalPath: source)
-            : Path.Parse(source);
+        var sourcePath = direction switch
+        {
+            Direction.In => new Path(Container: null, LocalPath: source),
+            Direction.Out or Direction.Inter => Path.Parse(source),
+            _ => null,
+        };
 
-        var destinationPath = direction is Direction.In
-            ? Path.Parse(destination)
-            : new Path(Container: null, LocalPath: destination);
+        var destinationPath = direction switch
+        {
+            Direction.In or Direction.Inter => Path.Parse(destination),
+            Direction.Out => new Path(Container: null, LocalPath: destination),
+            _ => null,
+        };
+
+        if (sourcePath is null || destinationPath is null)
+            return CopyResult.Error;
 
         return _dockerExecutor.Copy(sourcePath, destinationPath, overwrite, direction);
     }
 
     public CopyResult Move(string source, string destination, bool overwrite, Direction direction)
     {
-        var sourcePath = direction is Direction.In
-            ? new Path(Container: null, LocalPath: source)
-            : Path.Parse(source);
+        var sourcePath = direction switch
+        {
+            Direction.In => new Path(Container: null, LocalPath: source),
+            Direction.Out or Direction.Inter => Path.Parse(source),
+            _ => null,
+        };
 
-        var destinationPath = direction is Direction.In
-            ? Path.Parse(destination)
-            : new Path(Container: null, LocalPath: destination);
+        var destinationPath = direction switch
+        {
+            Direction.In or Direction.Inter => Path.Parse(destination),
+            Direction.Out => new Path(Container: null, LocalPath: destination),
+            _ => null,
+        };
+
+        if (sourcePath is null || destinationPath is null)
+            return CopyResult.Error;
 
         return _dockerExecutor.Move(sourcePath, destinationPath, overwrite, direction);
     }

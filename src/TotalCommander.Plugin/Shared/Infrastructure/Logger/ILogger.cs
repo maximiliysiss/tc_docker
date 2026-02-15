@@ -2,5 +2,5 @@
 
 public interface ILogger
 {
-    void Log(string message);
+    void Log(LogLevel logLevel, string message);
 }

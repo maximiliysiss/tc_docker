@@ -26,7 +26,7 @@ public sealed class DockerExecutor : IDockerExecutor
 
     public IEnumerable<Container> EnumerateContainers()
     {
-        _logger.Log("EnumerateContainers: Start enumerating containers");
+        _logger.LogInfo("EnumerateContainers: Start enumerating containers");
 
         string[] commands =
         [
@@ -46,7 +46,7 @@ public sealed class DockerExecutor : IDockerExecutor
 
     public IEnumerable<Entry> EnumerateContainer(Path path)
     {
-        _logger.Log($"EnumerateContainer: Start enumerating container '{path}'");
+        _logger.LogInfo($"EnumerateContainer: Start enumerating container '{path}'");
 
         if (path.Container is null || path.LocalPath is null)
             return [];
@@ -57,7 +57,7 @@ public sealed class DockerExecutor : IDockerExecutor
             path.Container.Name,
             "sh",
             "-c",
-            $"find \"{path.LocalPath}\" -maxdepth 1 -mindepth 1 -print0 | xargs -0 stat -c \"%n\u001f%A\u001f%s\""
+            $"find \"{path.LocalPath}\" -maxdepth 1 -mindepth 1 -exec stat -c \"%n\u001f%A\u001f%s\" -- {{}} +"
         ];
 
         var output = _console.Execute(commands);
@@ -73,7 +73,7 @@ public sealed class DockerExecutor : IDockerExecutor
 
     public void CreateFile(Path path)
     {
-        _logger.Log($"CreateFile: Start creating file in container '{path}'");
+        _logger.LogInfo($"CreateFile: Start creating file in container '{path}'");
 
         if (path.Container is null || path.LocalPath is null)
             return;
@@ -91,7 +91,7 @@ public sealed class DockerExecutor : IDockerExecutor
 
     public void DeleteFile(Path path)
     {
-        _logger.Log($"DeleteFile: Start deleting file in container '{path}'");
+        _logger.LogInfo($"DeleteFile: Start deleting file in container '{path}'");
 
         if (path.Container is null || path.LocalPath is null)
             return;
@@ -109,7 +109,7 @@ public sealed class DockerExecutor : IDockerExecutor
 
     public void DeleteDirectory(Path path)
     {
-        _logger.Log($"DeleteDirectory: Start deleting directory in container '{path}'");
+        _logger.LogInfo($"DeleteDirectory: Start deleting directory in container '{path}'");
 
         if (path.Container is null || path.LocalPath is null)
             return;
@@ -128,7 +128,7 @@ public sealed class DockerExecutor : IDockerExecutor
 
     public void CreateDirectory(Path path)
     {
-        _logger.Log($"CreateDirectory: Start creating directory in container '{path}'");
+        _logger.LogInfo($"CreateDirectory: Start creating directory in container '{path}'");
 
         if (path.Container is null || path.LocalPath is null)
             return;
@@ -146,7 +146,7 @@ public sealed class DockerExecutor : IDockerExecutor
 
     public ExecuteResult Execute(Path path, string command)
     {
-        _logger.Log($"Execute: Start executing command in container '{path}': {command}");
+        _logger.LogInfo($"Execute: Start executing command in container '{path}': {command}");
 
         if (path.Container is null || path.LocalPath is null)
             return ExecuteResult.Error;
@@ -167,19 +167,33 @@ public sealed class DockerExecutor : IDockerExecutor
 
     public CopyResult Copy(Path source, Path destination, bool overwrite, Direction direction)
     {
-        _logger.Log($"Copy: Start copying from '{source}' to '{destination}', overwrite: {overwrite}, direction: {direction}");
+        _logger.LogInfo($"Copy: Start copying from '{source}' to '{destination}', overwrite: {overwrite}, direction: {direction}");
 
         if (source.LocalPath is null || destination.LocalPath is null)
             return CopyResult.Error;
 
         if (overwrite is false)
         {
-            if (direction == Direction.In && IsExists(destination))
+            if (direction is Direction.In or Direction.Inter && IsExists(destination))
                 return CopyResult.Exists;
 
             var exists = File.Exists(destination.LocalPath) || Directory.Exists(destination.LocalPath);
             if (direction == Direction.Out && exists)
                 return CopyResult.Exists;
+        }
+
+        if (source.Container is not null && destination.Container is not null)
+        {
+            var localPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.IO.Path.GetRandomFileName());
+            var interPath = new Path(Container: null, localPath);
+
+            var copyResult = Copy(source, interPath, overwrite: true, Direction.Out);
+            if (copyResult is not CopyResult.Success)
+                return copyResult;
+
+            copyResult = Copy(interPath, destination, overwrite, Direction.In);
+
+            return copyResult;
         }
 
         var sourcePath = $"{source.Container?.Name.Append(":")}{source.LocalPath}";
@@ -199,7 +213,7 @@ public sealed class DockerExecutor : IDockerExecutor
 
     public CopyResult Move(Path source, Path destination, bool overwrite, Direction direction)
     {
-        _logger.Log($"Move: Start moving from '{source}' to '{destination}', overwrite: {overwrite}, direction: {direction}");
+        _logger.LogInfo($"Move: Start moving from '{source}' to '{destination}', overwrite: {overwrite}, direction: {direction}");
 
         var copyResult = Copy(source, destination, overwrite, direction);
         if (copyResult is not CopyResult.Success)
@@ -208,7 +222,7 @@ public sealed class DockerExecutor : IDockerExecutor
         if (direction == Direction.In && source.LocalPath is not null)
             OperatingSystem.Delete(source.LocalPath);
 
-        if (direction == Direction.Out)
+        if (direction is Direction.Out or Direction.Inter)
         {
             DeleteFile(source);
             DeleteDirectory(source);
@@ -219,7 +233,7 @@ public sealed class DockerExecutor : IDockerExecutor
 
     public CopyResult Rename(Path source, Path destination, bool overwrite)
     {
-        _logger.Log($"Rename: Start renaming from '{source}' to '{destination}', overwrite: {overwrite}");
+        _logger.LogInfo($"Rename: Start renaming from '{source}' to '{destination}', overwrite: {overwrite}");
 
         if (source.Container is null || destination.Container is null || source.LocalPath is null || destination.LocalPath is null)
             return CopyResult.Error;
@@ -232,6 +246,7 @@ public sealed class DockerExecutor : IDockerExecutor
             "exec",
             source.Container.Name,
             "mv",
+            overwrite ? "-f" : "-n",
             source.LocalPath,
             destination.LocalPath,
         ];
@@ -254,12 +269,14 @@ public sealed class DockerExecutor : IDockerExecutor
             path.Container.Name,
             "sh",
             "-c",
-            $"[ -e \"{path.LocalPath}\" ] && echo exists"
+            "[ -e \"$1\" ] && echo exists",
+            "--",
+            path.LocalPath
         ];
 
         var execute = _console.Execute(commands);
 
-        _logger.Log($"IsExists: Checking existence of '{path}', result: '{execute}'");
+        _logger.LogInfo($"IsExists: Checking existence of '{path}', result: '{execute}'");
 
         return execute?.Trim() is expectedOutput;
     }
