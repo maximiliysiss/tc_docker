@@ -11,12 +11,11 @@ public sealed class Console(string command)
     private static readonly ILogger s_logger = new TraceLogger("console.log");
     private static readonly TimeSpan s_timeout = TimeSpan.FromMinutes(1);
 
-    public string? Execute(string[] arguments, params string[] commands)
+    public string? Execute(string[] arguments, string? workingDirectory = null)
     {
-        var commandsOutput = string.Join(", ", commands.DefaultIfEmpty("<no commands>"));
         var argumentsOutput = string.Join(' ', arguments.DefaultIfEmpty("<no arguments>"));
 
-        s_logger.LogInfo($"Begin execution of '{command} {argumentsOutput}' with inner commands '{commandsOutput}'");
+        s_logger.LogInfo($"Begin execution of '{command} {argumentsOutput}'");
 
         using var process = new Process();
 
@@ -27,9 +26,9 @@ public sealed class Console(string command)
             FileName = command,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
-            RedirectStandardInput = commands is not [],
             CreateNoWindow = true,
             UseShellExecute = false,
+            WorkingDirectory = workingDirectory
         };
 
         foreach (var argument in arguments)
@@ -46,12 +45,6 @@ public sealed class Console(string command)
 
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
-
-            foreach (var innerCommand in commands)
-            {
-                process.StandardInput.Write($"{innerCommand}\n");
-                process.StandardInput.Flush();
-            }
 
             var isExited = process.WaitForExit(s_timeout);
             if (!isExited)

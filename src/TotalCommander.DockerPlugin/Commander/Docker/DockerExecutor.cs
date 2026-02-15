@@ -182,7 +182,7 @@ public sealed class DockerExecutor : IDockerExecutor
                 return CopyResult.Exists;
         }
 
-        if (source.Container is not null && destination.Container is not null)
+        if (direction is Direction.Inter)
         {
             var localPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.IO.Path.GetRandomFileName());
             var interPath = new Path(Container: null, localPath);

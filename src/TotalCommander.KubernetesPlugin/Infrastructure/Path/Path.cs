@@ -7,6 +7,8 @@ namespace TotalCommander.KubernetesPlugin.Infrastructure.Path;
 
 public sealed record Path(Context? Context, Namespace? Namespace, Pod? Pod, string? LocalPath)
 {
+    public bool IsRoot => LocalPath is null or "/";
+
     public override string ToString() =>
         $"{Context?.Name ?? "<empty context>"} / {Namespace?.Name ?? "<empty namespace>"} / {Pod?.Name ?? "<empty pod>"} -> {LocalPath ?? "<empty path>"}";
 

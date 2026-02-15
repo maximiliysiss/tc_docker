@@ -19,6 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\TotalCommander.DockerPlugin\TotalCommander.DockerPlugin.csproj" />
+    <ProjectReference Include="..\..\src\TotalCommander.KubernetesPlugin\TotalCommander.KubernetesPlugin.csproj" />
     <ProjectReference Include="..\..\src\TotalCommander.Plugin\TotalCommander.Plugin.csproj" />
   </ItemGroup>
 
