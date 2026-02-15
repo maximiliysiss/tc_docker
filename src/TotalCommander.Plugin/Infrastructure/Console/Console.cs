@@ -11,10 +11,15 @@ public sealed class Console(string command)
     private static readonly ILogger s_logger = new TraceLogger("console.log");
     private static readonly TimeSpan s_timeout = TimeSpan.FromMinutes(1);
 
-    public string? Execute(string arguments, params string[] commands)
+    // TODO delete this method
+    public string? Execute(string arguments, params string[] commands) => Execute([arguments], commands);
+
+    public string? Execute(string[] arguments, params string[] commands)
     {
         var commandsOutput = string.Join(", ", commands.DefaultIfEmpty("<no commands>"));
-        s_logger.Log($"Begin execution of '{command} {arguments} with inner commands '{commandsOutput}'");
+        var argumentsOutput = string.Join(' ', arguments.DefaultIfEmpty("<no arguments>"));
+
+        s_logger.Log($"Begin execution of '{command} {argumentsOutput}' with inner commands '{commandsOutput}'");
 
         using var process = new Process();
 
@@ -22,7 +27,6 @@ public sealed class Console(string command)
 
         process.StartInfo = new ProcessStartInfo
         {
-            Arguments = arguments,
             FileName = command,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -30,6 +34,9 @@ public sealed class Console(string command)
             CreateNoWindow = true,
             UseShellExecute = false,
         };
+
+        foreach (var argument in arguments)
+            process.StartInfo.ArgumentList.Add(argument);
 
         StringBuilder sb = new();
 
@@ -58,7 +65,7 @@ public sealed class Console(string command)
                 }
                 catch
                 {
-                    // ignored
+                    s_logger.Log($"Cannot kill '{command} {argumentsOutput}'");
                 }
             }
 
@@ -78,13 +85,13 @@ public sealed class Console(string command)
 
         if (process.ExitCode != 0)
         {
-            s_logger.Log($"Execution of '{command} {arguments}' failed with output '{output ?? "<empty>"}'");
+            s_logger.Log($"Execution of '{command} {argumentsOutput}' failed with output '{output ?? "<empty>"}'");
             return null;
         }
 
-        s_logger.Log($"Execution of '{command} {arguments}' is end with '{output ?? "<empty>"}'");
+        s_logger.Log($"Execution of '{command} {argumentsOutput}' is end with '{output ?? "<empty>"}'");
 
-        return output ?? string.Empty;
+        return output?.Trim() ?? string.Empty;
 
         void Output(object _, DataReceivedEventArgs e)
         {

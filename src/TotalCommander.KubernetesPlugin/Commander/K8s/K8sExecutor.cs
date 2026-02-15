@@ -86,7 +86,7 @@ public sealed class K8sExecutor : IK8sExecutor
         return output
             .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .SkipWhile(c => c.StartsWith("total"))
-            .Select(EntryFactory.Create);
+            .Select(c => EntryFactory.Create(c));
     }
 
     public void CreateDirectory(Path path)

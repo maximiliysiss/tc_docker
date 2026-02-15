@@ -7,6 +7,7 @@ namespace TotalCommander.DockerPlugin.Infrastructure.Path;
 
 public sealed record Path(Container? Container, string? LocalPath)
 {
+    public bool IsRoot => LocalPath is null or "/";
     public override string ToString() => $"{Container?.Name ?? "<empty container>"} -> {LocalPath ?? "<empty path>"}";
 
     private static readonly ILogger s_logger = new TraceLogger("path.log");
