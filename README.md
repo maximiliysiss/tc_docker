@@ -1,12 +1,13 @@
-# 🐳 TotalCommander Docker/Kubernetes Plugin
+# 🐳 TotalCommander Docker/Kubernetes/Podman Plugin
 
-**TotalCommander Docker/Kubernetes Plugin** is a Total Commander extension that allows you to browse and interact with Docker and Kubernetes containers as if they were part of the local filesystem.
+**TotalCommander Docker/Kubernetes/Podman Plugin** is a Total Commander extension that allows you to browse and interact with Docker, Podman, and Kubernetes containers as if they were part of the local filesystem.
 
 ---
 
 ## ✨ Features
 
 - 📂 Browse Docker containers as a filesystem
+- 📂 Browse Podman containers as a filesystem
 - ⌨️ Execute commands via Total Commander’s command line
 - 🗂️ File operations:
     - Create
@@ -37,12 +38,23 @@ If you are familiar with the Docker plugin, you can use the Kubernetes plugin in
 
 ---
 
+## Podman Plugin Support
+
+The Podman plugin provides the same container filesystem workflow as the Docker plugin using the Podman CLI:
+
+- Browse running Podman containers as directories
+- Navigate container filesystems
+- Create, delete, rename, move, and copy files/directories
+- Execute commands in the selected container via Total Commander's command line
+
+---
+
 ## 📥 Installation
 
-1. Unpack `docker/kubernetes.zip`
+1. Unpack `docker/podman/kubernetes.zip`
 2. In Total Commander, go to:
    `Configuration -> Options -> Plugins -> WFX Plugins -> Add`
-3. Select the plugin file `docker/k8s.wfx` or `docker/k8s.wfx64`
+3. Select the plugin file `docker.wfx`, `podman.wfx`, or `k8s.wfx` matching your target and architecture
 4. Open the `//` directory inside Total Commander to access containers
 
 ---
