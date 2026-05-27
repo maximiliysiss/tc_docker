@@ -64,6 +64,7 @@ public sealed class Console(string command)
         catch (Exception ex)
         {
             s_logger.LogError($"Cannot execute '{command}' because '{ex.Message}'");
+            return null;
         }
         finally
         {

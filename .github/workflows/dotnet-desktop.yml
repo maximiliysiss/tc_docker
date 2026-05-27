@@ -38,6 +38,9 @@ jobs:
           dotnet publish ./src/TotalCommander.DockerPlugin/TotalCommander.DockerPlugin.csproj -c Release -o publish/docker/x64 -r win-x64
           dotnet publish ./src/TotalCommander.DockerPlugin/TotalCommander.DockerPlugin.csproj -c Release -o publish/docker/x86 -r win-x86
 
+          dotnet publish ./src/TotalCommander.PodmanPlugin/TotalCommander.PodmanPlugin.csproj -c Release -o publish/podman/x64 -r win-x64
+          dotnet publish ./src/TotalCommander.PodmanPlugin/TotalCommander.PodmanPlugin.csproj -c Release -o publish/podman/x86 -r win-x86
+
           dotnet publish ./src/TotalCommander.KubernetesPlugin/TotalCommander.KubernetesPlugin.csproj -c Release -o publish/k8s/x64 -r win-x64
           dotnet publish ./src/TotalCommander.KubernetesPlugin/TotalCommander.KubernetesPlugin.csproj -c Release -o publish/k8s/x86 -r win-x86
 
@@ -49,6 +52,14 @@ jobs:
         path: |
           publish/docker/**/*.wfx*
           publish/docker/**/pluginst.inf
+
+    - name: Podman release artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: podman
+        path: |
+          publish/podman/**/*.wfx*
+          publish/podman/**/pluginst.inf
 
     - name: Kubernetes release artifacts
       uses: actions/upload-artifact@v4
